@@ -40,7 +40,7 @@ def _(mo):
 
 @app.cell
 def _(Path, mo, np):
-    ROOT = Path("/Users/carriecrane/GitHub/Optimal_Focusing/data/focusing_images/18_n5")
+    ROOT = Path("/Users/carriecrane/GitHub/Optimal_Focusing/data/focusing_images/29_n12")
     z_vals = np.arange(0,25.5, 0.5)
     blur = mo.ui.slider(0 , 3 , step = 0.5, value = 1.0, label = "Pre blur σ (px)")
     blur
@@ -49,6 +49,7 @@ def _(Path, mo, np):
 
 @app.cell
 def _(ROOT, re):
+    ## CELL 3 ##
     def get_files(l_val):
         folder = ROOT / f"l={l_val}"
         files = sorted(folder.glob("*.tif"), key = lambda f: int(re.findall(r'\d+',f.stem)[-1]))
@@ -62,6 +63,7 @@ def _(ROOT, re):
 
 @app.cell
 def _(curve_fit, find_peaks, gaussian_filter, np, tifffile):
+    ## CELL 4 ##
     def find_center_and_profile(img, search_radius=200):
         blurred = gaussian_filter(img, sigma=3)
         ny, nx  = img.shape
@@ -201,7 +203,7 @@ def _(curve_fit, find_peaks, gaussian_filter, np, tifffile):
 
 @app.cell
 def _(get_files, mo, np, process_frame, time):
-    # v2 perchance
+    ## CELL 5 ##
     all_results = {}
 
     for ls_val in range(6):
@@ -225,58 +227,77 @@ def _(get_files, mo, np, process_frame, time):
 
 @app.cell
 def _(all_results, np, plt, z_vals):
-    fig_r, axes_r = plt.subplots(2, 3, figsize=(14, 8), sharex=True)
-    axes_r = axes_r.flatten()
+    ## CELL 6 ##
+    def plot_ring_radius():
+        fig_r, axes_r = plt.subplots(2, 3, figsize=(14, 8), sharex=True)
+        axes_r = axes_r.flatten()
 
-    for l_val in range(6):
-        res    = all_results[l_val]
-        z_l    = z_vals[:len(res)]
-        ring_r = np.array([r["ring_r"] for r in res])
-        valid  = ~np.isnan(ring_r)
+        for l_val in range(6):
+            res    = all_results[l_val]
+            z_l    = z_vals[:len(res)]
+            ring_r = np.array([r["ring_r"] for r in res])
+            valid  = ~np.isnan(ring_r)
 
-        ax = axes_r[l_val]
-        ax.plot(z_l[valid], ring_r[valid], 'o-', ms=3, lw=1.5, color=f'C{l_val}')
-        ax.set_title(f'ℓ = {l_val}')
-        ax.set_xlabel('z (mm)')
-        ax.set_ylabel('inner ring radius (px)')
-        ax.grid(True, alpha=0.3)
+            ax = axes_r[l_val]
+            ax.plot(z_l[valid], ring_r[valid], 'o-', ms=3, lw=1.5, color=f'C{l_val}')
+            ax.set_title(f'ℓ = {l_val}')
+            ax.set_xlabel('z (mm)')
+            ax.set_ylabel('inner ring radius (px)')
+            ax.grid(True, alpha=0.3)
 
-    plt.suptitle('Innermost ring radius vs z position', fontsize=13)
-    plt.tight_layout()
-    plt.savefig("/Users/carriecrane/GitHub/Optimal_Focusing/ring_radius_vs_z.png", dpi=130)
-    plt.close()
-    print("saved ring_radius_vs_z.png")
+        plt.suptitle('Innermost ring radius vs z position', fontsize=13)
+        plt.tight_layout()
+        plt.savefig("/Users/carriecrane/GitHub/Optimal_Focusing/ring_radius_vs_z.png", dpi=130)
+        plt.close()
+        print("saved ring_radius_vs_z.png")
+
+    plot_ring_radius()
     return
 
 
 @app.cell
 def _(all_results, np, plt, z_vals):
-    fig_i, axes_i = plt.subplots(2, 3, figsize=(14, 8), sharex=True)
-    axes_i = axes_i.flatten()
+    ## CELL 7 ##
+    def plot_peak_intensity():
+        fig_i, axes_i = plt.subplots(2, 3, figsize=(14, 8), sharex=True)
+        axes_i = axes_i.flatten()
 
-    for l_val in range(6):
-        res   = all_results[l_val]
-        z_l   = z_vals[:len(res)]
-        peak  = np.array([r["peak"] for r in res])
-        valid = ~np.isnan(peak)
+        for l_val in range(6):
+            res   = all_results[l_val]
+            z_l   = z_vals[:len(res)]
+            peak  = np.array([r["peak"] for r in res])
+            valid = ~np.isnan(peak)
 
-        ax = axes_i[l_val]
-        ax.plot(z_l[valid], peak[valid], 'o-', ms=3, lw=1.5, color=f'C{l_val}')
-        ax.set_title(f'ℓ = {l_val}')
-        ax.set_xlabel('z (mm)')
-        ax.set_ylabel('peak intensity (counts)')
-        ax.grid(True, alpha=0.3)
+            ax = axes_i[l_val]
+            ax.plot(z_l[valid], peak[valid], 'o-', ms=3, lw=1.5, color=f'C{l_val}')
+            ax.set_title(f'ℓ = {l_val}')
+            ax.set_xlabel('z (mm)')
+            ax.set_ylabel('peak intensity (counts)')
+            ax.grid(True, alpha=0.3)
 
-    plt.suptitle('Innermost ring peak intensity vs z position', fontsize=13)
-    plt.tight_layout()
-    plt.savefig("/Users/carriecrane/GitHub/Optimal_Focusing/peak_intensity_vs_z.png", dpi=130)
-    plt.close()
-    print("saved peak_intensity_vs_z.png")
+        plt.suptitle('Innermost ring peak intensity vs z position', fontsize=13)
+        plt.tight_layout()
+        plt.savefig("/Users/carriecrane/GitHub/Optimal_Focusing/peak_intensity_vs_z.png", dpi=130)
+        plt.close()
+        print("saved peak_intensity_vs_z.png")
+
+    plot_peak_intensity()
     return
 
 
 @app.cell
-def _(all_results, mo, np, plt, z_vals):
+def _(all_results, gaussian_filter, mo, np, plt, z_vals):
+    ## CELL 8 ##
+    def find_crop_center(img):
+        """Find beam center by taking weighted centroid of top 5% brightest pixels."""
+        blurred   = gaussian_filter(img, sigma=3)
+        threshold = np.percentile(blurred, 95)
+        bright    = blurred >= threshold
+        Y, X      = np.mgrid[:img.shape[0], :img.shape[1]]
+        cx = float(np.average(X[bright], weights=blurred[bright]))
+        cy = float(np.average(Y[bright], weights=blurred[bright]))
+        return cx, cy
+
     def plot_beam_grid(l_val, step=5):
         res     = all_results[l_val]
         indices = list(range(0, len(res), step))
@@ -290,31 +311,29 @@ def _(all_results, mo, np, plt, z_vals):
                              img[-20:,:20], img[-20:,-20:]])
             img = np.clip(img - bg, 0, None)
 
-            cx, cy = r["cx"], r["cy"]
-            half   = 150
+            # Re-find center fresh for accurate cropping
+            cx, cy = find_crop_center(img)
 
-    # Pad image so crop can extend beyond edges
-            img_pad = np.pad(img, half, mode='constant')
+            # Adaptive crop size based on ring radius
+            if not np.isnan(r["ring_r"]) and r["ring_r"] > 0:
+                half = int(r["ring_r"] * 2.5)
+            else:
+                half = 300
+            half = max(100, min(half, 450))
 
-    # Shift center coordinates into padded image
-            cx_pad = cx + half
-            cy_pad = cy + half
-
-            crop = img_pad[
-                int(cy_pad-half):int(cy_pad+half),
-                int(cx_pad-half):int(cx_pad+half)
-            ]
+            ny, nx = img.shape
+            y1 = int(np.clip(cy - half, 0, ny - 2*half))
+            x1 = int(np.clip(cx - half, 0, nx - 2*half))
+            crop = img[y1:y1+2*half, x1:x1+2*half]
 
             vmax = np.percentile(img[img > 0], 99.5) if img.max() > 0 else 1
-            ax.imshow(crop, cmap='inferno', origin='upper', vmax=vmax)
-
-
+            ax.imshow(crop, cmap='magma', origin='upper', vmax=vmax)
             ax.set_title(f'z={z_vals[idx]:.1f}mm', fontsize=8)
             ax.axis('off')
 
-        plt.suptitle(f'ℓ = {l_val} — Beam Focusing Sequence', y=1.02)
+        plt.suptitle(f'ℓ = {l_val} — beam focusing sequence', y=1.02)
         plt.tight_layout()
-        plt.savefig(f"/Users/carriecrane/GitHub/Optimal_Focusing/beam_grid_l{l_val}_18.png", dpi=130, bbox_inches ='tight')
+        plt.savefig(f"/Users/carriecrane/GitHub/Optimal_Focusing/beam_grid_l{l_val}_29.png", dpi=130)
         plt.close()
         print(f"saved beam_grid_l{l_val}.png")
 
