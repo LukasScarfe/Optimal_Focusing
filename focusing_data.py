@@ -40,7 +40,7 @@ def _(mo):
 
 @app.cell
 def _(Path, mo, np):
-    ROOT = Path("/Users/carriecrane/GitHub/Optimal_Focusing/data/focusing_images")
+    ROOT = Path("/Users/carriecrane/GitHub/Optimal_Focusing/data/focusing_images/18_n5")
     z_vals = np.arange(0,25.5, 0.5)
     blur = mo.ui.slider(0 , 3 , step = 0.5, value = 1.0, label = "Pre blur σ (px)")
     blur
@@ -204,20 +204,20 @@ def _(get_files, mo, np, process_frame, time):
     # v2 perchance
     all_results = {}
 
-    for l_val in range(6):
-        files_l   = get_files(l_val)
+    for ls_val in range(6):
+        files_l   = get_files(ls_val)
         results_l = []
         prev_r = None
         t0        = time.time()
 
         for i_frame, f in enumerate(files_l):
-            r = process_frame(f, l_val)
+            r = process_frame(f, ls_val)
             results_l.append(r)
             if not np.isnan(r["ring_r"]):
                 prev_r = r["ring_r"]
             elapsed = time.time() - t0
-            print(f"l={l_val}  frame {i_frame+1}/{len(files_l)}  ({elapsed:.0f}s)  ring_r={r['ring_r']:.1f}px  peak={r['peak']:.1f}")
-        all_results[l_val] = results_l
+            print(f"l={ls_val}  frame {i_frame+1}/{len(files_l)}  ({elapsed:.0f}s)  ring_r={r['ring_r']:.1f}px  peak={r['peak']:.1f}")
+        all_results[ls_val] = results_l
 
     mo.callout(mo.md("All frames processed."), kind="success")
     return (all_results,)
@@ -314,7 +314,7 @@ def _(all_results, mo, np, plt, z_vals):
 
         plt.suptitle(f'ℓ = {l_val} — Beam Focusing Sequence', y=1.02)
         plt.tight_layout()
-        plt.savefig(f"/Users/carriecrane/GitHub/Optimal_Focusing/beam_grid_l{l_val}.png", dpi=130, bbox_inches ='tight')
+        plt.savefig(f"/Users/carriecrane/GitHub/Optimal_Focusing/beam_grid_l{l_val}_18.png", dpi=130, bbox_inches ='tight')
         plt.close()
         print(f"saved beam_grid_l{l_val}.png")
 
