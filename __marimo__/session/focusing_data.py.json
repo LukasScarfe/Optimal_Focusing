@@ -1,0 +1,195 @@
+{
+  "version": "1",
+  "metadata": {
+    "marimo_version": "0.23.9",
+    "script_metadata_hash": null
+  },
+  "cells": [
+    {
+      "id": "Hbol",
+      "code_hash": "c08700b5964f7823c5f35edbb19e52ca",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "MJUe",
+      "code_hash": "d8bac5679208bfeb59d3d4da1ccd47c9",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h1 id=\"optimal-focusing-of-oam-beams\">Optimal Focusing of OAM Beams</h1></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "vblA",
+      "code_hash": "7894abdefdea062053fdc79ce7e48fda",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<marimo-ui-element object-id='vblA-0' random-id='4eeb00f2-900f-a96f-4624-afebfb924917'><marimo-slider data-initial-value='1.0' data-label='&quot;&#92;u003cspan class=&#92;&quot;markdown prose dark:prose-invert contents&#92;&quot;&#92;u003e&#92;u003cspan class=&#92;&quot;paragraph&#92;&quot;&#92;u003ePre blur \u03c3 (px)&#92;u003c/span&#92;u003e&#92;u003c/span&#92;u003e&quot;' data-start='0' data-stop='3' data-step='0.5' data-steps='[]' data-debounce='false' data-disabled='false' data-orientation='&quot;horizontal&quot;' data-show-value='false' data-include-input='false' data-full-width='false'></marimo-slider></marimo-ui-element>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "bkHC",
+      "code_hash": "2ecbc6d3755a904d3c8a9e6b598341ec",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": [
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "l=0: 51 files - first: 20_n8_l0_0000.tif, last:20_n8_l0_0050.tif\nl=1: 51 files - first: 20_n8_l1_0000.tif, last:20_n8_l1_0050.tif\nl=2: 51 files - first: 20_n8_l2_0000.tif, last:20_n8_l2_0050.tif\nl=3: 51 files - first: 20_n8_l3_0000.tif, last:20_n8_l3_0050.tif\nl=4: 51 files - first: 20_n8_l4_0000.tif, last:20_n8_l4_0050.tif\nl=5: 51 files - first: 20_n8_l5_0000.tif, last:20_n8_l5_0050.tif\n",
+          "mimetype": "text/plain"
+        }
+      ]
+    },
+    {
+      "id": "lEQa",
+      "code_hash": "bf76bb3c82c8b6beefce1d5642751940",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "PKri",
+      "code_hash": "c006e040f1071a50f26e0ee2872ab975",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<marimo-callout-output data-html='&quot;&#92;u003cspan class=&#92;&quot;markdown prose dark:prose-invert contents&#92;&quot;&#92;u003e&#92;u003cspan class=&#92;&quot;paragraph&#92;&quot;&#92;u003eAll frames processed.&#92;u003c/span&#92;u003e&#92;u003c/span&#92;u003e&quot;' data-kind='&quot;success&quot;'></marimo-callout-output>"
+          }
+        }
+      ],
+      "console": [
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "l=0  frame 1/51  (0s)  ring_r=nanpx  peak=321.0\nl=0  frame 2/51  (0s)  ring_r=nanpx  peak=335.0\nl=0  frame 3/51  (0s)  ring_r=nanpx  peak=344.0\nl=0  frame 4/51  (0s)  ring_r=nanpx  peak=340.0\nl=0  frame 5/51  (0s)  ring_r=nanpx  peak=316.0\nl=0  frame 6/51  (0s)  ring_r=nanpx  peak=309.0\nl=0  frame 7/51  (0s)  ring_r=nanpx  peak=296.0\nl=0  frame 8/51  (0s)  ring_r=nanpx  peak=310.0\nl=0  frame 9/51  (0s)  ring_r=nanpx  peak=308.0\nl=0  frame 10/51  (0s)  ring_r=nanpx  peak=335.0\nl=0  frame 11/51  (0s)  ring_r=nanpx  peak=343.0\nl=0  frame 12/51  (0s)  ring_r=nanpx  peak=325.0\nl=0  frame 13/51  (0s)  ring_r=nanpx  peak=337.0\nl=0  frame 14/51  (0s)  ring_r=nanpx  peak=358.0\nl=0  frame 15/51  (0s)  ring_r=nanpx  peak=359.0\nl=0  frame 16/51  (0s)  ring_r=nanpx  peak=414.0\nl=0  frame 17/51  (0s)  ring_r=nanpx  peak=444.0\nl=0  frame 18/51  (0s)  ring_r=nanpx  peak=457.0\nl=0  frame 19/51  (0s)  ring_r=nanpx  peak=489.0\nl=0  frame 20/51  (0s)  ring_r=nanpx  peak=513.0\nl=0  frame 21/51  (0s)  ring_r=nanpx  peak=534.0\nl=0  frame 22/51  (0s)  ring_r=nanpx  peak=648.0\nl=0  frame 23/51  (0s)  ring_r=nanpx  peak=595.0\nl=0  frame 24/51  (0s)  ring_r=nanpx  peak=678.0\nl=0  frame 25/51  (0s)  ring_r=nanpx  peak=713.0\nl=0  frame 26/51  (0s)  ring_r=nanpx  peak=701.0\nl=0  frame 27/51  (0s)  ring_r=nanpx  peak=749.0\nl=0  frame 28/51  (0s)  ring_r=nanpx  peak=789.0\nl=0  frame 29/51  (0s)  ring_r=nanpx  peak=793.0\nl=0  frame 30/51  (0s)  ring_r=nanpx  peak=916.0\nl=0  frame 31/51  (0s)  ring_r=nanpx  peak=976.0\nl=0  frame 32/51  (0s)  ring_r=nanpx  peak=1006.0\nl=0  frame 33/51  (0s)  ring_r=nanpx  peak=1008.0\nl=0  frame 34/51  (1s)  ring_r=nanpx  peak=1007.0\nl=0  frame 35/51  (1s)  ring_r=nanpx  peak=1007.0\nl=0  frame 36/51  (1s)  ring_r=nanpx  peak=1008.0\nl=0  frame 37/51  (1s)  ring_r=nanpx  peak=1007.0\nl=0  frame 38/51  (1s)  ring_r=nanpx  peak=1007.0\nl=0  frame 39/51  (1s)  ring_r=nanpx  peak=1007.0\nl=0  frame 40/51  (1s)  ring_r=nanpx  peak=1006.0\nl=0  frame 41/51  (1s)  ring_r=nanpx  peak=1008.0\nl=0  frame 42/51  (1s)  ring_r=nanpx  peak=1007.0\nl=0  frame 43/51  (1s)  ring_r=nanpx  peak=1006.0\nl=0  frame 44/51  (1s)  ring_r=nanpx  peak=1008.0\nl=0  frame 45/51  (1s)  ring_r=nanpx  peak=1007.0\nl=0  frame 46/51  (1s)  ring_r=nanpx  peak=1005.0\nl=0  frame 47/51  (1s)  ring_r=nanpx  peak=1007.0\nl=0  frame 48/51  (1s)  ring_r=nanpx  peak=1007.0\nl=0  frame 49/51  (1s)  ring_r=nanpx  peak=1006.0\nl=0  frame 50/51  (1s)  ring_r=nanpx  peak=1007.0\nl=0  frame 51/51  (1s)  ring_r=nanpx  peak=1007.0\nl=1  frame 1/51  (0s)  ring_r=62.6px  peak=24.2\nl=1  frame 2/51  (0s)  ring_r=62.8px  peak=24.4\nl=1  frame 3/51  (0s)  ring_r=63.4px  peak=24.4\nl=1  frame 4/51  (1s)  ring_r=65.1px  peak=24.6\nl=1  frame 5/51  (1s)  ring_r=65.8px  peak=25.3\nl=1  frame 6/51  (1s)  ring_r=65.8px  peak=26.0\nl=1  frame 7/51  (1s)  ring_r=67.3px  peak=25.6\nl=1  frame 8/51  (1s)  ring_r=67.2px  peak=26.3\nl=1  frame 9/51  (1s)  ring_r=68.4px  peak=25.8\nl=1  frame 10/51  (2s)  ring_r=68.8px  peak=26.1\nl=1  frame 11/51  (2s)  ring_r=68.7px  peak=26.2\nl=1  frame 12/51  (2s)  ring_r=69.2px  peak=26.8\nl=1  frame 13/51  (2s)  ring_r=69.9px  peak=27.9\nl=1  frame 14/51  (2s)  ring_r=71.3px  peak=28.7\nl=1  frame 15/51  (2s)  ring_r=72.2px  peak=29.3\nl=1  frame 16/51  (2s)  ring_r=73.4px  peak=30.0\nl=1  frame 17/51  (3s)  ring_r=75.2px  peak=29.9\nl=1  frame 18/51  (3s)  ring_r=75.4px  peak=30.3\nl=1  frame 19/51  (3s)  ring_r=76.7px  peak=30.0\nl=1  frame 20/51  (3s)  ring_r=76.6px  peak=30.7\nl=1  frame 21/51  (3s)  ring_r=78.3px  peak=31.1\nl=1  frame 22/51  (3s)  ring_r=78.5px  peak=32.4\nl=1  frame 23/51  (4s)  ring_r=80.2px  peak=32.7\nl=1  frame 24/51  (4s)  ring_r=80.5px  peak=33.6\nl=1  frame 25/51  (4s)  ring_r=82.3px  peak=33.5\nl=1  frame 26/51  (4s)  ring_r=83.1px  peak=33.5\nl=1  frame 27/51  (4s)  ring_r=84.5px  peak=33.4\nl=1  frame 28/51  (4s)  ring_r=85.6px  peak=33.8\nl=1  frame 29/51  (4s)  ring_r=85.9px  peak=33.4\nl=1  frame 30/51  (5s)  ring_r=86.9px  peak=34.7\nl=1  frame 31/51  (5s)  ring_r=87.3px  peak=35.0\nl=1  frame 32/51  (5s)  ring_r=88.6px  peak=36.6\nl=1  frame 33/51  (5s)  ring_r=90.2px  peak=36.8\nl=1  frame 34/51  (5s)  ring_r=91.2px  peak=39.5\nl=1  frame 35/51  (5s)  ring_r=92.7px  peak=40.7\nl=1  frame 36/51  (6s)  ring_r=95.0px  peak=41.4\nl=1  frame 37/51  (6s)  ring_r=95.7px  peak=42.9\nl=1  frame 38/51  (6s)  ring_r=95.9px  peak=44.3\nl=1  frame 39/51  (6s)  ring_r=97.5px  peak=44.5\nl=1  frame 40/51  (6s)  ring_r=97.9px  peak=45.1\nl=1  frame 41/51  (6s)  ring_r=98.2px  peak=44.9\nl=1  frame 42/51  (7s)  ring_r=50.9px  peak=81.4\nl=1  frame 43/51  (7s)  ring_r=49.8px  peak=82.9\nl=1  frame 44/51  (7s)  ring_r=50.3px  peak=82.0\nl=1  frame 45/51  (7s)  ring_r=49.4px  peak=82.0\nl=1  frame 46/51  (7s)  ring_r=71.2px  peak=59.1\nl=1  frame 47/51  (7s)  ring_r=48.4px  peak=82.9\nl=1  frame 48/51  (7s)  ring_r=48.1px  peak=82.7\nl=1  frame 49/51  (8s)  ring_r=47.9px  peak=83.9\nl=1  frame 50/51  (8s)  ring_r=47.0px  peak=85.1\nl=1  frame 51/51  (8s)  ring_r=48.4px  peak=83.4\nl=2  frame 1/51  (0s)  ring_r=49.6px  peak=3.3\nl=2  frame 2/51  (0s)  ring_r=39.7px  peak=3.5\nl=2  frame 3/51  (0s)  ring_r=60.4px  peak=22.3\nl=2  frame 4/51  (1s)  ring_r=61.9px  peak=23.0\nl=2  frame 5/51  (1s)  ring_r=62.3px  peak=23.3\nl=2  frame 6/51  (1s)  ring_r=63.5px  peak=23.6\nl=2  frame 7/51  (1s)  ring_r=64.2px  peak=24.5\nl=2  frame 8/51  (1s)  ring_r=64.3px  peak=24.4\nl=2  frame 9/51  (1s)  ring_r=65.6px  peak=25.2\nl=2  frame 10/51  (2s)  ring_r=66.3px  peak=25.1\nl=2  frame 11/51  (2s)  ring_r=67.6px  peak=25.4\nl=2  frame 12/51  (2s)  ring_r=67.8px  peak=26.1\nl=2  frame 13/51  (2s)  ring_r=69.6px  peak=24.8\nl=2  frame 14/51  (2s)  ring_r=70.2px  peak=24.8\nl=2  frame 15/51  (2s)  ring_r=71.5px  peak=24.2\nl=2  frame 16/51  (3s)  ring_r=72.5px  peak=24.5\nl=2  frame 17/51  (3s)  ring_r=73.9px  peak=24.3\nl=2  frame 18/51  (3s)  ring_r=74.6px  peak=24.2\nl=2  frame 19/51  (3s)  ring_r=75.4px  peak=25.5\nl=2  frame 20/51  (3s)  ring_r=76.9px  peak=24.8\nl=2  frame 21/51  (3s)  ring_r=77.1px  peak=25.9\nl=2  frame 22/51  (3s)  ring_r=77.7px  peak=25.2\nl=2  frame 23/51  (4s)  ring_r=79.6px  peak=25.6\nl=2  frame 24/51  (4s)  ring_r=80.0px  peak=25.8\nl=2  frame 25/51  (4s)  ring_r=80.8px  peak=26.0\nl=2  frame 26/51  (4s)  ring_r=82.3px  peak=26.1\nl=2  frame 27/51  (4s)  ring_r=83.1px  peak=26.6\nl=2  frame 28/51  (5s)  ring_r=83.7px  peak=27.2\nl=2  frame 29/51  (5s)  ring_r=58.5px  peak=37.3\nl=2  frame 30/51  (5s)  ring_r=85.9px  peak=28.0\nl=2  frame 31/51  (5s)  ring_r=59.8px  peak=39.4\nl=2  frame 32/51  (6s)  ring_r=58.8px  peak=41.6\nl=2  frame 33/51  (6s)  ring_r=60.5px  peak=42.9\nl=2  frame 34/51  (6s)  ring_r=62.1px  peak=43.4\nl=2  frame 35/51  (6s)  ring_r=61.9px  peak=44.1\nl=2  frame 36/51  (6s)  ring_r=65.5px  peak=44.0\nl=2  frame 37/51  (6s)  ring_r=67.9px  peak=44.2\nl=2  frame 38/51  (6s)  ring_r=67.3px  peak=46.0\nl=2  frame 39/51  (7s)  ring_r=69.0px  peak=46.4\nl=2  frame 40/51  (7s)  ring_r=98.8px  peak=35.1\nl=2  frame 41/51  (7s)  ring_r=99.6px  peak=35.5\nl=2  frame 42/51  (7s)  ring_r=97.6px  peak=36.5\nl=2  frame 43/51  (7s)  ring_r=66.8px  peak=51.3\nl=2  frame 44/51  (7s)  ring_r=70.1px  peak=49.9\nl=2  frame 45/51  (8s)  ring_r=54.1px  peak=63.1\nl=2  frame 46/51  (8s)  ring_r=53.3px  peak=64.7\nl=2  frame 47/51  (8s)  ring_r=71.1px  peak=50.5\nl=2  frame 48/51  (8s)  ring_r=73.1px  peak=50.1\nl=2  frame 49/51  (8s)  ring_r=73.7px  peak=49.7\nl=2  frame 50/51  (8s)  ring_r=74.9px  peak=50.1\nl=2  frame 51/51  (8s)  ring_r=74.8px  peak=50.3\nl=3  frame 1/51  (0s)  ring_r=57.1px  peak=20.3\nl=3  frame 2/51  (0s)  ring_r=58.7px  peak=20.0\nl=3  frame 3/51  (0s)  ring_r=58.3px  peak=20.6\nl=3  frame 4/51  (1s)  ring_r=60.0px  peak=20.6\nl=3  frame 5/51  (1s)  ring_r=61.0px  peak=19.9\nl=3  frame 6/51  (1s)  ring_r=61.9px  peak=21.0\nl=3  frame 7/51  (1s)  ring_r=62.4px  peak=20.8\nl=3  frame 8/51  (1s)  ring_r=63.8px  peak=21.0\nl=3  frame 9/51  (1s)  ring_r=63.9px  peak=21.0\nl=3  frame 10/51  (2s)  ring_r=65.2px  peak=20.8\nl=3  frame 11/51  (2s)  ring_r=65.8px  peak=20.4\nl=3  frame 12/51  (2s)  ring_r=67.2px  peak=20.9\nl=3  frame 13/51  (2s)  ring_r=68.0px  peak=20.8\nl=3  frame 14/51  (2s)  ring_r=69.1px  peak=20.9\nl=3  frame 15/51  (2s)  ring_r=68.2px  peak=21.4\nl=3  frame 16/51  (3s)  ring_r=70.6px  peak=20.9\nl=3  frame 17/51  (3s)  ring_r=71.1px  peak=21.0\nl=3  frame 18/51  (3s)  ring_r=72.6px  peak=21.3\nl=3  frame 19/51  (3s)  ring_r=71.8px  peak=21.7\nl=3  frame 20/51  (3s)  ring_r=73.8px  peak=20.8\nl=3  frame 21/51  (3s)  ring_r=76.0px  peak=21.3\nl=3  frame 22/51  (3s)  ring_r=76.9px  peak=20.7\nl=3  frame 23/51  (4s)  ring_r=78.6px  peak=21.0\nl=3  frame 24/51  (4s)  ring_r=79.6px  peak=21.6\nl=3  frame 25/51  (4s)  ring_r=81.4px  peak=21.2\nl=3  frame 26/51  (4s)  ring_r=82.9px  peak=20.9\nl=3  frame 27/51  (4s)  ring_r=81.1px  peak=22.5\nl=3  frame 28/51  (4s)  ring_r=83.8px  peak=22.4\nl=3  frame 29/51  (5s)  ring_r=58.7px  peak=31.0\nl=3  frame 30/51  (5s)  ring_r=84.5px  peak=23.3\nl=3  frame 31/51  (5s)  ring_r=57.5px  peak=32.4\nl=3  frame 32/51  (5s)  ring_r=87.4px  peak=23.8\nl=3  frame 33/51  (5s)  ring_r=63.1px  peak=30.8\nl=3  frame 34/51  (5s)  ring_r=91.7px  peak=24.3\nl=3  frame 35/51  (6s)  ring_r=65.3px  peak=32.1\nl=3  frame 36/51  (6s)  ring_r=96.1px  peak=25.1\nl=3  frame 37/51  (6s)  ring_r=100.6px  peak=25.2\nl=3  frame 38/51  (6s)  ring_r=100.9px  peak=25.4\nl=3  frame 39/51  (6s)  ring_r=102.9px  peak=26.3\nl=3  frame 40/51  (6s)  ring_r=71.0px  peak=36.1\nl=3  frame 41/51  (7s)  ring_r=71.9px  peak=38.0\nl=3  frame 42/51  (7s)  ring_r=75.5px  peak=38.5\nl=3  frame 43/51  (7s)  ring_r=77.1px  peak=40.1\nl=3  frame 44/51  (7s)  ring_r=82.2px  peak=41.4\nl=3  frame 45/51  (7s)  ring_r=85.6px  peak=44.7\nl=3  frame 46/51  (7s)  ring_r=95.1px  peak=45.9\nl=3  frame 47/51  (8s)  ring_r=100.9px  peak=51.0\nl=3  frame 48/51  (8s)  ring_r=61.0px  peak=48.5\nl=3  frame 49/51  (8s)  ring_r=61.4px  peak=49.8\nl=3  frame 50/51  (8s)  ring_r=62.7px  peak=50.0\nl=3  frame 51/51  (8s)  ring_r=59.7px  peak=52.8\nl=4  frame 1/51  (0s)  ring_r=55.4px  peak=20.7\nl=4  frame 2/51  (0s)  ring_r=56.9px  peak=20.2\nl=4  frame 3/51  (0s)  ring_r=57.8px  peak=20.3\nl=4  frame 4/51  (1s)  ring_r=58.6px  peak=20.1\nl=4  frame 5/51  (1s)  ring_r=59.0px  peak=20.5\nl=4  frame 6/51  (1s)  ring_r=60.2px  peak=20.7\nl=4  frame 7/51  (1s)  ring_r=60.6px  peak=20.4\nl=4  frame 8/51  (1s)  ring_r=61.6px  peak=20.0\nl=4  frame 9/51  (1s)  ring_r=62.5px  peak=20.5\nl=4  frame 10/51  (2s)  ring_r=87.8px  peak=16.1\nl=4  frame 11/51  (2s)  ring_r=63.8px  peak=20.1\nl=4  frame 12/51  (2s)  ring_r=90.1px  peak=15.8\nl=4  frame 13/51  (2s)  ring_r=89.4px  peak=16.2\nl=4  frame 14/51  (2s)  ring_r=90.9px  peak=16.2\nl=4  frame 15/51  (2s)  ring_r=92.2px  peak=16.3\nl=4  frame 16/51  (3s)  ring_r=92.8px  peak=16.3\nl=4  frame 17/51  (3s)  ring_r=93.7px  peak=16.4\nl=4  frame 18/51  (3s)  ring_r=94.3px  peak=16.0\nl=4  frame 19/51  (3s)  ring_r=96.5px  peak=16.3\nl=4  frame 20/51  (3s)  ring_r=96.5px  peak=16.4\nl=4  frame 21/51  (3s)  ring_r=98.5px  peak=16.6\nl=4  frame 22/51  (4s)  ring_r=99.4px  peak=16.7\nl=4  frame 23/51  (4s)  ring_r=100.5px  peak=16.2\nl=4  frame 24/51  (4s)  ring_r=101.1px  peak=16.0\nl=4  frame 25/51  (4s)  ring_r=104.3px  peak=16.3\nl=4  frame 26/51  (4s)  ring_r=104.0px  peak=16.9\nl=4  frame 27/51  (4s)  ring_r=105.5px  peak=16.1\nl=4  frame 28/51  (4s)  ring_r=107.6px  peak=17.0\nl=4  frame 29/51  (5s)  ring_r=108.2px  peak=16.6\nl=4  frame 30/51  (5s)  ring_r=111.4px  peak=16.8\nl=4  frame 31/51  (5s)  ring_r=111.1px  peak=17.3\nl=4  frame 32/51  (5s)  ring_r=115.5px  peak=17.4\nl=4  frame 33/51  (5s)  ring_r=58.4px  peak=28.3\nl=4  frame 34/51  (5s)  ring_r=86.7px  peak=21.6\nl=4  frame 35/51  (6s)  ring_r=80.4px  peak=24.1\nl=4  frame 36/51  (6s)  ring_r=82.2px  peak=25.1\nl=4  frame 37/51  (6s)  ring_r=71.7px  peak=28.6\nl=4  frame 38/51  (6s)  ring_r=70.1px  peak=28.5\nl=4  frame 39/51  (6s)  ring_r=73.2px  peak=28.5\nl=4  frame 40/51  (6s)  ring_r=74.1px  peak=29.0\nl=4  frame 41/51  (7s)  ring_r=75.9px  peak=30.0\nl=4  frame 42/51  (7s)  ring_r=77.1px  peak=29.7\nl=4  frame 43/51  (7s)  ring_r=108.5px  peak=27.0\nl=4  frame 44/51  (7s)  ring_r=82.6px  peak=31.2\nl=4  frame 45/51  (7s)  ring_r=81.5px  peak=33.0\nl=4  frame 46/51  (7s)  ring_r=84.0px  peak=31.7\nl=4  frame 47/51  (8s)  ring_r=84.1px  peak=31.4\nl=4  frame 48/51  (8s)  ring_r=82.5px  peak=32.2\nl=4  frame 49/51  (8s)  ring_r=93.8px  peak=30.7\nl=4  frame 50/51  (8s)  ring_r=69.2px  peak=40.8\nl=4  frame 51/51  (8s)  ring_r=69.3px  peak=41.0\nl=5  frame 1/51  (0s)  ring_r=56.3px  peak=18.8\nl=5  frame 2/51  (0s)  ring_r=56.9px  peak=19.0\nl=5  frame 3/51  (0s)  ring_r=56.9px  peak=18.8\nl=5  frame 4/51  (1s)  ring_r=80.9px  peak=15.1\nl=5  frame 5/51  (1s)  ring_r=59.4px  peak=18.5\nl=5  frame 6/51  (1s)  ring_r=59.0px  peak=18.4\nl=5  frame 7/51  (1s)  ring_r=81.6px  peak=15.6\nl=5  frame 8/51  (1s)  ring_r=83.4px  peak=15.1\nl=5  frame 9/51  (1s)  ring_r=84.9px  peak=14.9\nl=5  frame 10/51  (2s)  ring_r=85.8px  peak=14.8\nl=5  frame 11/51  (2s)  ring_r=85.4px  peak=15.2\nl=5  frame 12/51  (2s)  ring_r=88.3px  peak=14.2\nl=5  frame 13/51  (2s)  ring_r=63.9px  peak=17.6\nl=5  frame 14/51  (2s)  ring_r=90.4px  peak=14.3\nl=5  frame 15/51  (2s)  ring_r=92.6px  peak=14.0\nl=5  frame 16/51  (3s)  ring_r=92.7px  peak=14.1\nl=5  frame 17/51  (3s)  ring_r=93.1px  peak=13.5\nl=5  frame 18/51  (3s)  ring_r=92.7px  peak=14.1\nl=5  frame 19/51  (3s)  ring_r=97.2px  peak=13.4\nl=5  frame 20/51  (3s)  ring_r=94.9px  peak=13.9\nl=5  frame 21/51  (3s)  ring_r=96.5px  peak=14.2\nl=5  frame 22/51  (4s)  ring_r=95.8px  peak=14.1\nl=5  frame 23/51  (4s)  ring_r=100.7px  peak=13.4\nl=5  frame 24/51  (4s)  ring_r=100.1px  peak=13.6\nl=5  frame 25/51  (4s)  ring_r=100.8px  peak=13.8\nl=5  frame 26/51  (4s)  ring_r=101.7px  peak=14.1\nl=5  frame 27/51  (4s)  ring_r=78.9px  peak=16.6\nl=5  frame 28/51  (4s)  ring_r=106.1px  peak=14.2\nl=5  frame 29/51  (5s)  ring_r=111.0px  peak=17.1\nl=5  frame 30/51  (5s)  ring_r=81.7px  peak=16.6\nl=5  frame 31/51  (5s)  ring_r=114.4px  peak=13.4\nl=5  frame 32/51  (5s)  ring_r=114.0px  peak=13.0\nl=5  frame 33/51  (5s)  ring_r=114.7px  peak=14.0\nl=5  frame 34/51  (5s)  ring_r=113.0px  peak=14.3\nl=5  frame 35/51  (6s)  ring_r=89.1px  peak=17.1\nl=5  frame 36/51  (6s)  ring_r=93.6px  peak=16.9\nl=5  frame 37/51  (6s)  ring_r=74.0px  peak=20.1\nl=5  frame 38/51  (6s)  ring_r=69.9px  peak=21.2\nl=5  frame 39/51  (6s)  ring_r=76.4px  peak=19.7\nl=5  frame 40/51  (6s)  ring_r=68.3px  peak=22.0\nl=5  frame 41/51  (7s)  ring_r=73.5px  peak=21.0\nl=5  frame 42/51  (7s)  ring_r=70.5px  peak=22.5\nl=5  frame 43/51  (7s)  ring_r=69.3px  peak=22.9\nl=5  frame 44/51  (7s)  ring_r=85.5px  peak=20.4\nl=5  frame 45/51  (7s)  ring_r=70.5px  peak=23.0\nl=5  frame 46/51  (7s)  ring_r=73.0px  peak=22.4\nl=5  frame 47/51  (8s)  ring_r=73.3px  peak=21.5\nl=5  frame 48/51  (8s)  ring_r=84.9px  peak=33.9\nl=5  frame 49/51  (8s)  ring_r=87.1px  peak=33.7\nl=5  frame 50/51  (8s)  ring_r=87.0px  peak=34.3\nl=5  frame 51/51  (8s)  ring_r=76.4px  peak=40.1\n",
+          "mimetype": "text/plain"
+        }
+      ]
+    },
+    {
+      "id": "DhoP",
+      "code_hash": "368100e592df7761228e1da64993c0c3",
+      "outputs": [
+        {
+          "type": "error",
+          "ename": "multiple-defs",
+          "evalue": "The variable 'ax' was defined by another cell",
+          "traceback": []
+        },
+        {
+          "type": "error",
+          "ename": "multiple-defs",
+          "evalue": "The variable 'l_val' was defined by another cell",
+          "traceback": []
+        },
+        {
+          "type": "error",
+          "ename": "multiple-defs",
+          "evalue": "The variable 'res' was defined by another cell",
+          "traceback": []
+        },
+        {
+          "type": "error",
+          "ename": "multiple-defs",
+          "evalue": "The variable 'valid' was defined by another cell",
+          "traceback": []
+        },
+        {
+          "type": "error",
+          "ename": "multiple-defs",
+          "evalue": "The variable 'z_l' was defined by another cell",
+          "traceback": []
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "uLFL",
+      "code_hash": "351c02a6e40da9469cdfc49712f388bb",
+      "outputs": [
+        {
+          "type": "error",
+          "ename": "multiple-defs",
+          "evalue": "The variable 'ax' was defined by another cell",
+          "traceback": []
+        },
+        {
+          "type": "error",
+          "ename": "multiple-defs",
+          "evalue": "The variable 'l_val' was defined by another cell",
+          "traceback": []
+        },
+        {
+          "type": "error",
+          "ename": "multiple-defs",
+          "evalue": "The variable 'res' was defined by another cell",
+          "traceback": []
+        },
+        {
+          "type": "error",
+          "ename": "multiple-defs",
+          "evalue": "The variable 'valid' was defined by another cell",
+          "traceback": []
+        },
+        {
+          "type": "error",
+          "ename": "multiple-defs",
+          "evalue": "The variable 'z_l' was defined by another cell",
+          "traceback": []
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "SFPL",
+      "code_hash": "7e38d918cddcbb005c3e44e59e757358",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<marimo-callout-output data-html='&quot;&#92;u003cspan class=&#92;&quot;markdown prose dark:prose-invert contents&#92;&quot;&#92;u003e&#92;u003cspan class=&#92;&quot;paragraph&#92;&quot;&#92;u003eBeam grids saved.&#92;u003c/span&#92;u003e&#92;u003c/span&#92;u003e&quot;' data-kind='&quot;success&quot;'></marimo-callout-output>"
+          }
+        }
+      ],
+      "console": [
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "saved beam_grid_l0.png\nsaved beam_grid_l1.png\nsaved beam_grid_l2.png\nsaved beam_grid_l3.png\nsaved beam_grid_l4.png\nsaved beam_grid_l5.png\n",
+          "mimetype": "text/plain"
+        }
+      ]
+    }
+  ]
+}
