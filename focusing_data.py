@@ -40,7 +40,7 @@ def _(mo):
 
 @app.cell
 def _(Path, mo, np):
-    ROOT = Path("/Users/carriecrane/GitHub/Optimal_Focusing/data/focusing_images/29_n12")
+    ROOT = Path("/Users/carriecrane/GitHub/Optimal_Focusing/data/focusing_images/29_n10")
     z_vals = np.arange(0,25.5, 0.5)
     blur = mo.ui.slider(0 , 3 , step = 0.5, value = 1.0, label = "Pre blur σ (px)")
     blur
@@ -333,7 +333,7 @@ def _(all_results, gaussian_filter, mo, np, plt, z_vals):
 
         plt.suptitle(f'ℓ = {l_val} — beam focusing sequence', y=1.02)
         plt.tight_layout()
-        plt.savefig(f"/Users/carriecrane/GitHub/Optimal_Focusing/beam_grid_l{l_val}_29.png", dpi=130)
+        plt.savefig(f"/Users/carriecrane/GitHub/Optimal_Focusing/beam_grid_l{l_val}_29_10.png", dpi=130)
         plt.close()
         print(f"saved beam_grid_l{l_val}.png")
 
