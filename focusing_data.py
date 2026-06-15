@@ -42,9 +42,13 @@ def _(mo):
 def _(Path, mo, np):
     ROOT = Path("/Users/carriecrane/GitHub/Optimal_Focusing/data/focusing_images/29_n10")
     z_vals = np.arange(0,25.5, 0.5)
+
+    BEAM_SIZE = 29
+    N_FOCUS = 10
+
     blur = mo.ui.slider(0 , 3 , step = 0.5, value = 1.0, label = "Pre blur σ (px)")
-    blur
-    return ROOT, z_vals
+    mo.vstack([mo.callout(mo.md(f"**Current dataset:** beam size = {BEAM_SIZE}, n = {N_FOCUS}"), kind = "info"),blur])
+    return BEAM_SIZE, N_FOCUS, ROOT, z_vals
 
 
 @app.cell
@@ -245,7 +249,8 @@ def _(all_results, np, plt, z_vals):
             ax.set_ylabel('inner ring radius (px)')
             ax.grid(True, alpha=0.3)
 
-        plt.suptitle('Innermost ring radius vs z position', fontsize=13)
+        plt.suptitle('Innermost ring radius vs z - beam = {BEAM_SIZE} mm   n = {N_FOCUS}', fontsize=13)
+    
         plt.tight_layout()
         plt.savefig("/Users/carriecrane/GitHub/Optimal_Focusing/ring_radius_vs_z.png", dpi=130)
         plt.close()
@@ -286,7 +291,7 @@ def _(all_results, np, plt, z_vals):
 
 
 @app.cell
-def _(all_results, gaussian_filter, mo, np, plt, z_vals):
+def _(BEAM_SIZE, N_FOCUS, all_results, gaussian_filter, mo, np, plt, z_vals):
     ## CELL 8 ##
     def find_crop_center(img):
         """Find beam center by taking weighted centroid of top 5% brightest pixels."""
@@ -331,7 +336,7 @@ def _(all_results, gaussian_filter, mo, np, plt, z_vals):
             ax.set_title(f'z={z_vals[idx]:.1f}mm', fontsize=8)
             ax.axis('off')
 
-        plt.suptitle(f'ℓ = {l_val} — beam focusing sequence', y=1.02)
+        plt.suptitle(f'ℓ = {l_val} beam = {BEAM_SIZE}  n = {N_FOCUS} - focusing sequence', y=1.02)
         plt.tight_layout()
         plt.savefig(f"/Users/carriecrane/GitHub/Optimal_Focusing/beam_grid_l{l_val}_29_10.png", dpi=130)
         plt.close()
