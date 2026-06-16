@@ -40,7 +40,7 @@ def _(mo):
 
 @app.cell
 def _(Path, mo, np):
-    ROOT = Path("/Users/carriecrane/GitHub/Optimal_Focusing/data/focusing_images/29_n14")
+    ROOT = Path("/Users/carriecrane/GitHub/Optimal_Focusing/data/focusing_images/29_n14_pt2")
     z_vals = np.arange(0,25.5, 0.5)
 
     BEAM_SIZE = 29
@@ -313,7 +313,7 @@ def _(BEAM_SIZE, N_FOCUS, all_results, gaussian_filter, mo, np, plt, z_vals):
         F_filt = fftshift(fft2(img)) * lpf
         out    = np.real(ifft2(ifftshift(F_filt)))
         return np.clip(out, 0, None)
-    
+
     def plot_beam_grid(l_val, step=5, bg_scale=0.3):
         res      = all_results[l_val]
         indices  = list(range(0, len(res), step))
@@ -336,24 +336,24 @@ def _(BEAM_SIZE, N_FOCUS, all_results, gaussian_filter, mo, np, plt, z_vals):
         anchor_cy  = float(np.average(Y0[bright0], weights=blurred0[bright0]))
 
         half = 350
-    
+
+        # ---- CHANGE 1: compute global vmax across all frames before the loop ----
+        global_max = max(r["image"].astype(float).max() for r in res)
+        vmax = global_max * 0.95
+        # ------------------------------------------------------------------------
+
         for ax, idx in zip(axes, indices):
             r   = res[idx]
             img = r["image"].astype(float)
             bg  = np.median([img[:20,:20], img[:20,-20:],
                              img[-20:,:20], img[-20:,-20:]])
             img = np.clip(img - bg, 0, None)
-
-            # Subtract fixed pattern background
             img = fourier_clean(img, r_cut=100)
 
-            # Find center but constrain to within 100px of anchor
             blurred   = gaussian_filter(img, sigma=3)
             threshold = np.percentile(blurred, 95)
             bright    = blurred >= threshold
             Y, X      = np.mgrid[:img.shape[0], :img.shape[1]]
-
-            # Only use bright pixels within 150px of anchor
             dist_from_anchor = np.sqrt((X - anchor_cx)**2 + (Y - anchor_cy)**2)
             bright = bright & (dist_from_anchor < 150)
 
@@ -368,7 +368,6 @@ def _(BEAM_SIZE, N_FOCUS, all_results, gaussian_filter, mo, np, plt, z_vals):
             x1 = int(np.clip(cx - half, 0, nx - 2*half))
             crop = img[y1:y1+2*half, x1:x1+2*half]
 
-            # Soft central mask for 0th order
             crop_cx = cx - x1
             crop_cy = cy - y1
             Y_c, X_c = np.ogrid[:crop.shape[0], :crop.shape[1]]
@@ -378,14 +377,16 @@ def _(BEAM_SIZE, N_FOCUS, all_results, gaussian_filter, mo, np, plt, z_vals):
             soft_mask = 1 / (1 + np.exp(-(R_c - mask_r) / softness))
             crop = crop * soft_mask
 
-            vmax = np.percentile(img[img > 0], 99.5) if img.max() > 0 else 1
-            ax.imshow(crop, cmap='inferno', origin='upper', vmax=vmax)
+            # ---- CHANGE 2: use global vmax instead of per-frame ----
+            ax.imshow(crop, cmap='inferno', origin='upper', vmax=vmax, vmin=0)
+            # --------------------------------------------------------
+
             ax.set_title(f'z={z_vals[idx]:.1f}mm', fontsize=8)
             ax.axis('off')
 
         plt.suptitle(f'ℓ={l_val}  beam={BEAM_SIZE} n={N_FOCUS} — focusing sequence', y=1.02)
         plt.tight_layout()
-        plt.savefig(f"/Users/carriecrane/GitHub/Optimal_Focusing/analysis/29_14/beam_grid_l{l_val}.png", dpi=130)
+        plt.savefig(f"/Users/carriecrane/GitHub/Optimal_Focusing/analysis/29_n14_pt2/beam_grid_l{l_val}.png", dpi=130)
         plt.close()
         print(f"saved beam_grid_l{l_val}.png")
 
@@ -393,7 +394,6 @@ def _(BEAM_SIZE, N_FOCUS, all_results, gaussian_filter, mo, np, plt, z_vals):
         plot_beam_grid(l_val3, step=5, bg_scale=0.3)
 
     mo.callout(mo.md("Beam grids saved."), kind="success")
-
     return
 
 
