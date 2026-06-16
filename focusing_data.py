@@ -40,11 +40,11 @@ def _(mo):
 
 @app.cell
 def _(Path, mo, np):
-    ROOT = Path("/Users/carriecrane/GitHub/Optimal_Focusing/data/focusing_images/29_n10")
+    ROOT = Path("/Users/carriecrane/GitHub/Optimal_Focusing/data/focusing_images/29_n14")
     z_vals = np.arange(0,25.5, 0.5)
 
     BEAM_SIZE = 29
-    N_FOCUS = 10
+    N_FOCUS = 14
 
     blur = mo.ui.slider(0 , 3 , step = 0.5, value = 1.0, label = "Pre blur σ (px)")
     mo.vstack([mo.callout(mo.md(f"**Current dataset:** beam size = {BEAM_SIZE}, n = {N_FOCUS}"), kind = "info"),blur])
@@ -250,7 +250,7 @@ def _(all_results, np, plt, z_vals):
             ax.grid(True, alpha=0.3)
 
         plt.suptitle('Innermost ring radius vs z - beam = {BEAM_SIZE} mm   n = {N_FOCUS}', fontsize=13)
-    
+
         plt.tight_layout()
         plt.savefig("/Users/carriecrane/GitHub/Optimal_Focusing/ring_radius_vs_z.png", dpi=130)
         plt.close()
@@ -303,12 +303,40 @@ def _(BEAM_SIZE, N_FOCUS, all_results, gaussian_filter, mo, np, plt, z_vals):
         cy = float(np.average(Y[bright], weights=blurred[bright]))
         return cx, cy
 
-    def plot_beam_grid(l_val, step=5):
-        res     = all_results[l_val]
-        indices = list(range(0, len(res), step))
-        ncols   = len(indices)
+    def fourier_clean(img, r_cut=100):
+        """Suppress high spatial frequency noise via low-pass Fourier filter."""
+        from numpy.fft import fft2, ifft2, fftshift, ifftshift
+        ny, nx = img.shape
+        Y, X   = np.ogrid[:ny, :nx]
+        R_f    = np.sqrt((X - nx//2)**2 + (Y - ny//2)**2)
+        lpf    = np.exp(-(R_f / r_cut)**4)
+        F_filt = fftshift(fft2(img)) * lpf
+        out    = np.real(ifft2(ifftshift(F_filt)))
+        return np.clip(out, 0, None)
+    
+    def plot_beam_grid(l_val, step=5, bg_scale=0.3):
+        res      = all_results[l_val]
+        indices  = list(range(0, len(res), step))
+        ncols    = len(indices)
         fig, axes = plt.subplots(1, ncols, figsize=(ncols * 3, 3.5))
 
+        # Load background frame (first frame of this l value)
+        raw_bg  = res[0]["image"].astype(float)
+        bg_val  = np.median([raw_bg[:20,:20], raw_bg[:20,-20:],
+                             raw_bg[-20:,:20], raw_bg[-20:,-20:]])
+        img_bg  = np.clip(raw_bg - bg_val, 0, None)
+        img_bg_norm = img_bg / (img_bg.max() + 1e-6)
+
+        # Compute anchor center from first frame
+        blurred0   = gaussian_filter(img_bg, sigma=3)
+        thresh0    = np.percentile(blurred0, 95)
+        bright0    = blurred0 >= thresh0
+        Y0, X0     = np.mgrid[:blurred0.shape[0], :blurred0.shape[1]]
+        anchor_cx  = float(np.average(X0[bright0], weights=blurred0[bright0]))
+        anchor_cy  = float(np.average(Y0[bright0], weights=blurred0[bright0]))
+
+        half = 350
+    
         for ax, idx in zip(axes, indices):
             r   = res[idx]
             img = r["image"].astype(float)
@@ -316,36 +344,56 @@ def _(BEAM_SIZE, N_FOCUS, all_results, gaussian_filter, mo, np, plt, z_vals):
                              img[-20:,:20], img[-20:,-20:]])
             img = np.clip(img - bg, 0, None)
 
-            # Re-find center fresh for accurate cropping
-            cx, cy = find_crop_center(img)
+            # Subtract fixed pattern background
+            img = fourier_clean(img, r_cut=100)
 
-            # Adaptive crop size based on ring radius
-            if not np.isnan(r["ring_r"]) and r["ring_r"] > 0:
-                half = int(r["ring_r"] * 2.5)
+            # Find center but constrain to within 100px of anchor
+            blurred   = gaussian_filter(img, sigma=3)
+            threshold = np.percentile(blurred, 95)
+            bright    = blurred >= threshold
+            Y, X      = np.mgrid[:img.shape[0], :img.shape[1]]
+
+            # Only use bright pixels within 150px of anchor
+            dist_from_anchor = np.sqrt((X - anchor_cx)**2 + (Y - anchor_cy)**2)
+            bright = bright & (dist_from_anchor < 150)
+
+            if bright.sum() > 10:
+                cx = float(np.average(X[bright], weights=blurred[bright]))
+                cy = float(np.average(Y[bright], weights=blurred[bright]))
             else:
-                half = 300
-            half = max(100, min(half, 450))
+                cx, cy = anchor_cx, anchor_cy
 
             ny, nx = img.shape
             y1 = int(np.clip(cy - half, 0, ny - 2*half))
             x1 = int(np.clip(cx - half, 0, nx - 2*half))
             crop = img[y1:y1+2*half, x1:x1+2*half]
 
+            # Soft central mask for 0th order
+            crop_cx = cx - x1
+            crop_cy = cy - y1
+            Y_c, X_c = np.ogrid[:crop.shape[0], :crop.shape[1]]
+            R_c = np.sqrt((X_c - crop_cx)**2 + (Y_c - crop_cy)**2)
+            mask_r   = 20
+            softness = 5
+            soft_mask = 1 / (1 + np.exp(-(R_c - mask_r) / softness))
+            crop = crop * soft_mask
+
             vmax = np.percentile(img[img > 0], 99.5) if img.max() > 0 else 1
-            ax.imshow(crop, cmap='magma', origin='upper', vmax=vmax)
+            ax.imshow(crop, cmap='inferno', origin='upper', vmax=vmax)
             ax.set_title(f'z={z_vals[idx]:.1f}mm', fontsize=8)
             ax.axis('off')
 
-        plt.suptitle(f'ℓ = {l_val} beam = {BEAM_SIZE}  n = {N_FOCUS} - focusing sequence', y=1.02)
+        plt.suptitle(f'ℓ={l_val}  beam={BEAM_SIZE} n={N_FOCUS} — focusing sequence', y=1.02)
         plt.tight_layout()
-        plt.savefig(f"/Users/carriecrane/GitHub/Optimal_Focusing/beam_grid_l{l_val}_29_10.png", dpi=130)
+        plt.savefig(f"/Users/carriecrane/GitHub/Optimal_Focusing/analysis/29_14/beam_grid_l{l_val}.png", dpi=130)
         plt.close()
         print(f"saved beam_grid_l{l_val}.png")
 
     for l_val3 in range(6):
-        plot_beam_grid(l_val3, step=5)
+        plot_beam_grid(l_val3, step=5, bg_scale=0.3)
 
     mo.callout(mo.md("Beam grids saved."), kind="success")
+
     return
 
 
