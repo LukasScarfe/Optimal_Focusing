@@ -40,7 +40,7 @@ def _(mo):
 
 @app.cell
 def _(Path, mo, np):
-    ROOT = Path("/Users/carriecrane/GitHub/Optimal_Focusing/data/focusing_images/29_n14_pt2")
+    ROOT = Path("/Users/carriecrane/GitHub/Optimal_Focusing/data/focusing_images/29_n14_pt3")
     z_vals = np.arange(0,25.5, 0.5)
 
     BEAM_SIZE = 29
@@ -386,7 +386,7 @@ def _(BEAM_SIZE, N_FOCUS, all_results, gaussian_filter, mo, np, plt, z_vals):
 
         plt.suptitle(f'ℓ={l_val}  beam={BEAM_SIZE} n={N_FOCUS} — focusing sequence', y=1.02)
         plt.tight_layout()
-        plt.savefig(f"/Users/carriecrane/GitHub/Optimal_Focusing/analysis/29_n14_pt2/beam_grid_l{l_val}.png", dpi=130)
+        plt.savefig(f"/Users/carriecrane/GitHub/Optimal_Focusing/analysis/29_n14_pt3/beam_grid_l{l_val}.png", dpi=130)
         plt.close()
         print(f"saved beam_grid_l{l_val}.png")
 

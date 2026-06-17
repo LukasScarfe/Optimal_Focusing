@@ -30,7 +30,7 @@ AN IDEA: To test the polarization control before continuing with spatial control
 
 OUTCOME: I was unable to get extinction of the zeroth order, so it seems the isloation has to be done spatially rather than through phase. 
 
-## Data from June 13, 2026
+## Data from June 15, 2026
 
 29_n14: This looks pretty good, but there is definitely some leakage from the -1 order of diffraction now that I increased the xAngle. The angle is now 17 mRad. I think the outermost ring was also from maybe the 0th order. 
 
@@ -44,3 +44,12 @@ MEET WITH FARID: Discuss the simmulation Farid has. We should compare the experi
 
 NOTE ON PARAMETERS: I have been using a beam size of 29 since it is the largest generated hologram we have. This is essential to use the most of the SLM screen so we can use the most pixels and get the highest resolution for the images.  
 
+## Data from June 16, 2026
+
+29_n14_pt3: I collected this data set similar to 29_n14_pt2, but I lowered the exposure to 700ms from 4000ms. I suspect that if the camera was saturated it may have blocked true intensities in some frames. 
+
+NEW SETS: I would like to collect another set with n15 to see if the focus is passed. This should tell me if n14 is actually the correct focusing hologram for the beam size 29, if the focus is truly reached, the beam should re diverge past that point. This is limited since I can only move 25 mm with the stage.
+
+## Data from June 17, 2026 
+
+29_n15: In progress
