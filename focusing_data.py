@@ -16,18 +16,7 @@ def _():
     from pathlib import Path
     import io, re, time
 
-    return (
-        Path,
-        curve_fit,
-        find_peaks,
-        gaussian_filter,
-        mo,
-        np,
-        plt,
-        re,
-        tifffile,
-        time,
-    )
+    return Path, gaussian_filter, mo, np, plt, re, tifffile, time
 
 
 @app.cell(hide_code=True)
@@ -40,7 +29,7 @@ def _(mo):
 
 @app.cell
 def _(Path, mo, np):
-    ROOT = Path("/Users/carriecrane/GitHub/Optimal_Focusing/data/focusing_images/29_n14_pt3")
+    ROOT = Path("/Users/carriecrane/GitHub/Optimal_Focusing/data/focusing_images/29_n15")
     z_vals = np.arange(0,25.5, 0.5)
 
     BEAM_SIZE = 29
@@ -66,7 +55,7 @@ def _(ROOT, re):
 
 
 @app.cell
-def _(curve_fit, find_peaks, gaussian_filter, np, tifffile):
+def _(gaussian_filter, np, tifffile):
     ## CELL 4 ##
     def find_center_and_profile(img, search_radius=200):
         blurred = gaussian_filter(img, sigma=3)
@@ -105,73 +94,20 @@ def _(curve_fit, find_peaks, gaussian_filter, np, tifffile):
         return cx, cy, profile
 
     def get_innermost_ring(profile, img_max, prev_r=None):
-        """
-        Find innermost ring peak. If prev_r is given, search near it first
-        for continuity across frames.
-        """
+
         smooth = gaussian_filter(profile.astype(float), sigma=3)
 
-        # If we have a previous radius, search in a window around it first
-        if prev_r is not None and not np.isnan(prev_r):
-            window = 30  # px either side
-            lo = max(20, int(prev_r - window))
-            hi = min(len(smooth), int(prev_r + window))
-            local_peaks, _ = find_peaks(
-                smooth[lo:hi],
-                height=img_max * 0.03,
-                distance=5
-            )
-            if len(local_peaks) > 0:
-                # Pick peak closest to prev_r
-                local_peaks += lo
-                closest = local_peaks[np.argmin(np.abs(local_peaks - prev_r))]
-                r_peak = float(closest)
-                # Fit Gaussian around it
-                half_win = 25
-                r_lo = max(0, int(r_peak) - half_win)
-                r_hi = min(len(profile), int(r_peak) + half_win)
-                r_w  = np.arange(r_lo, r_hi, dtype=float)
-                I_w  = profile[r_lo:r_hi].astype(float)
-                def gauss1d(r, amp, r0, sigma, bg):
-                    return bg + amp * np.exp(-((r - r0)**2) / (2 * sigma**2))
-                try:
-                    popt, _ = curve_fit(gauss1d, r_w, I_w,
-                                        p0=[I_w.max(), r_peak, 8, I_w.min()],
-                                        maxfev=5000)
-                    amp, r0, sigma, bg = popt
-                    return abs(r0), amp + bg, abs(sigma)
-                except RuntimeError:
-                    return r_peak, float(profile[int(r_peak)]), np.nan
+        r_min = 5
 
-        # No previous radius — global search, skip first 20px
-        peaks, _ = find_peaks(
-            smooth[20:],
-            height=img_max * 0.05,
-            distance=10
-        )
-        peaks += 20
-
-        if len(peaks) == 0:
+        if len(smooth) <= r_min:
             return np.nan, np.nan, np.nan
 
-        r_peak = float(peaks[0])
-        half_win = 25
-        r_lo = max(0, int(r_peak) - half_win)
-        r_hi = min(len(profile), int(r_peak) + half_win)
-        r_w  = np.arange(r_lo, r_hi, dtype=float)
-        I_w  = profile[r_lo:r_hi].astype(float)
+        r_peak = np.argmax(smooth[r_min:]) + r_min
 
-        def gauss1d(r, amp, r0, sigma, bg):
-            return bg + amp * np.exp(-((r - r0)**2) / (2 * sigma**2))
-        try:
-            popt, _ = curve_fit(gauss1d, r_w, I_w,
-                                p0=[I_w.max(), r_peak, 8, I_w.min()],
-                                maxfev=5000)
-            amp, r0, sigma, bg = popt
-            return abs(r0), amp + bg, abs(sigma)
-        except RuntimeError:
-            return r_peak, float(profile[int(r_peak)]), np.nan
+        peak = smooth[r_peak]
 
+        return float(r_peak), float(peak), np.nan
+ 
 
     def process_frame(path, l_val, prev_r=None):
         raw = tifffile.imread(path).astype(float)
@@ -181,6 +117,7 @@ def _(curve_fit, find_peaks, gaussian_filter, np, tifffile):
         bg  = np.median([raw[:20,:20], raw[:20,-20:],
                          raw[-20:,:20], raw[-20:,-20:]])
         img = np.clip(raw - bg, 0, None)
+        width = beam_width(img)
 
         if l_val == 0:
             blurred = gaussian_filter(img, sigma=2)
@@ -188,7 +125,7 @@ def _(curve_fit, find_peaks, gaussian_filter, np, tifffile):
             cx, cy  = float(xc), float(yc)
             peak    = float(img[int(cy), int(cx)])
             return dict(name=path.name, image=raw, profile=np.zeros(300),
-                        cx=cx, cy=cy, ring_r=np.nan, ring_w=np.nan, peak=peak)
+                        cx=cx, cy=cy, ring_r=np.nan, ring_w=np.nan, peak=peak,width=width)
 
         cx, cy, profile = find_center_and_profile(img)
 
@@ -200,7 +137,33 @@ def _(curve_fit, find_peaks, gaussian_filter, np, tifffile):
             ring_r, peak, ring_w = get_innermost_ring(profile, img.max() * 0.3, None)
 
         return dict(name=path.name, image=raw, profile=profile,
-                    cx=cx, cy=cy, ring_r=ring_r, ring_w=ring_w, peak=peak)
+                    cx=cx, cy=cy, ring_r=ring_r, ring_w=ring_w, peak=peak, width = width)
+
+    def beam_width(img):
+
+        blurred = gaussian_filter(img, sigma=2)
+
+        thresh = 0.05 * blurred.max()
+
+        mask = blurred > thresh
+
+        if mask.sum() < 20:
+            return np.nan
+
+        Y, X = np.indices(img.shape)
+
+        I = blurred * mask
+
+        total = np.sum(I)
+
+        cx = np.sum(X * I) / total
+        cy = np.sum(Y * I) / total
+
+        r2 = (X - cx)**2 + (Y - cy)**2
+
+        w = np.sqrt(np.sum(I * r2) / total)
+
+        return float(w)
 
     return (process_frame,)
 
@@ -257,6 +220,225 @@ def _(all_results, np, plt, z_vals):
         print("saved ring_radius_vs_z.png")
 
     plot_ring_radius()
+    return
+
+
+@app.cell
+def _(all_results, np, plt, z_vals):
+    def plot_beam_width():
+
+        fig, axes = plt.subplots(
+            2, 3,
+            figsize=(14,8),
+            sharex=True
+        )
+
+        axes = axes.flatten()
+
+        for l_val in range(6):
+
+            res = all_results[l_val]
+
+            z_l = z_vals[:len(res)]
+
+            width = np.array([
+                r["width"] for r in res
+            ])
+
+            valid = ~np.isnan(width)
+
+            ax = axes[l_val]
+
+            ax.plot(
+                z_l[valid],
+                width[valid],
+                'o-',
+                ms=3,
+                lw=1.5,
+                color=f'C{l_val}'
+            )
+
+            ax.set_title(f'ℓ = {l_val}')
+            ax.set_xlabel('z (mm)')
+            ax.set_ylabel('beam width (px)')
+            ax.grid(True, alpha=0.3)
+
+        plt.suptitle(
+            'Second-moment beam width vs z',
+            fontsize=13
+        )
+
+        plt.tight_layout()
+
+        plt.savefig(
+            "/Users/carriecrane/GitHub/Optimal_Focusing/beam_width_vs_z.png",
+            dpi=130
+        )
+
+        plt.close()
+
+        print("saved beam_width_vs_z.png")
+
+    plot_beam_width()
+    return
+
+
+@app.cell
+def _(all_results, np, z_vals):
+    # CELL 6.6
+
+    for l_val in range(6):
+
+        res = all_results[l_val]
+
+        width = np.array([
+            r["width"] for r in res
+        ])
+
+        valid = ~np.isnan(width)
+
+        if valid.sum() == 0:
+            continue
+
+        width_valid = width[valid]
+        z_valid = z_vals[:len(width)][valid]
+
+        best_idx = np.argmin(width_valid)
+
+        print(
+            f"ℓ={l_val}: "
+            f"minimum width = {width_valid[best_idx]:.2f} px "
+            f"at z = {z_valid[best_idx]:.2f} mm"
+        )
+    return
+
+
+@app.cell
+def _(all_results, np, plt, width_arr, z_vals):
+    # CELL 6.65
+
+    plt.figure(figsize=(8,6))
+
+    for l_mode3 in range(6):
+
+        results_l3 = all_results[l_mode3]
+
+        width_arr3 = np.array([
+            r["width"] for r in results_l3
+        ])
+
+        valid_mask2 = ~np.isnan(width_arr3)
+
+        z_plot2 = z_vals[:len(width_arr)][valid_mask2]
+        w_plot2 = width_arr[valid_mask2]
+
+        plt.plot(
+            z_plot2,
+            +w_plot2,
+            lw=2,
+            label=f"ℓ={l_mode3}"
+        )
+
+        plt.plot(
+            z_plot2,
+            -w_plot2,
+            lw=2
+        )
+
+    plt.axhline(0, color='k', lw=0.5)
+
+    plt.xlabel("Propagation distance z (mm)")
+    plt.ylabel("Beam radius (px)")
+    plt.title("Beam Envelope (Unnormalized)")
+    plt.legend()
+
+    plt.tight_layout()
+    plt.show()
+    return
+
+
+@app.cell
+def _(all_results, np, plt, z_vals):
+    # CELL 6.7
+
+    plt.figure(figsize=(7,5))
+
+    for l_mode in range(6):
+
+        results_l2 = all_results[l_mode]
+
+        width_arr = np.array([
+            r["width"] for r in results_l2
+        ])
+
+        valid_mask = ~np.isnan(width_arr)
+
+        z_plot = z_vals[:len(width_arr)][valid_mask]
+        w_plot = width_arr[valid_mask]
+
+        w_plot = w_plot / w_plot[0]
+
+        plt.plot(
+            z_plot,
+            +w_plot,
+            lw=2,
+            label=f"ℓ={l_mode}"
+        )
+
+        plt.plot(
+            z_plot,
+            -w_plot,
+            lw=2
+        )
+
+    plt.axhline(0, color='k', lw=0.5)
+
+    plt.xlabel("Propagation Distance z (mm)")
+    plt.ylabel("Normalized Beam Radius")
+    plt.title("Beam Convergence")
+    plt.legend()
+
+    plt.tight_layout()
+    plt.show()
+    return (width_arr,)
+
+
+@app.cell
+def _(all_results, np, plt, z_vals):
+    # CELL 6.8
+
+    focus_positions = []
+
+    for l_mode2 in range(6):
+
+        width_arr2 = np.array([
+            r["width"]
+            for r in all_results[l_mode2]
+        ])
+
+        idx_min = np.nanargmin(width_arr2)
+
+        focus_positions.append(
+            z_vals[idx_min]
+        )
+
+    plt.figure(figsize=(5,4))
+
+    plt.plot(
+        range(6),
+        focus_positions,
+        'o-',
+        lw=2
+    )
+
+    plt.xlabel("OAM charge ℓ")
+    plt.ylabel("Focus position (mm)")
+    plt.title("Focus position vs OAM")
+
+    plt.grid(alpha=0.3)
+
+    plt.tight_layout()
+    plt.show()
     return
 
 
@@ -386,7 +568,7 @@ def _(BEAM_SIZE, N_FOCUS, all_results, gaussian_filter, mo, np, plt, z_vals):
 
         plt.suptitle(f'ℓ={l_val}  beam={BEAM_SIZE} n={N_FOCUS} — focusing sequence', y=1.02)
         plt.tight_layout()
-        plt.savefig(f"/Users/carriecrane/GitHub/Optimal_Focusing/analysis/29_n14_pt3/beam_grid_l{l_val}.png", dpi=130)
+        plt.savefig(f"/Users/carriecrane/GitHub/Optimal_Focusing/analysis/29_n15/beam_grid_l{l_val}.png", dpi=130)
         plt.close()
         print(f"saved beam_grid_l{l_val}.png")
 

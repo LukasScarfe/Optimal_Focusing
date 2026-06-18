@@ -52,4 +52,4 @@ NEW SETS: I would like to collect another set with n15 to see if the focus is pa
 
 ## Data from June 17, 2026 
 
-29_n15: In progress
+29_n15: This set looks pretty good. It makes it obvious that we do indeed pass the true focus since the beam refocuses afterwards. Each OAM mode focuses between 22 and 23, after that  point the beam rediverges agian. Im wondering if this set is better than the n14, because not only do we see the beam focus and become more intense, but we have verification that that is the focal point since the beam diverges. Either way, I have collected both 14 and 15 so we can analyze both. 
