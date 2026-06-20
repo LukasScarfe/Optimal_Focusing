@@ -33,7 +33,7 @@ def _(Path, mo, np):
     z_vals = np.arange(0,25.5, 0.5)
 
     BEAM_SIZE = 29
-    N_FOCUS = 14
+    N_FOCUS = 15
 
     blur = mo.ui.slider(0 , 3 , step = 0.5, value = 1.0, label = "Pre blur σ (px)")
     mo.vstack([mo.callout(mo.md(f"**Current dataset:** beam size = {BEAM_SIZE}, n = {N_FOCUS}"), kind = "info"),blur])
@@ -107,7 +107,7 @@ def _(gaussian_filter, np, tifffile):
         peak = smooth[r_peak]
 
         return float(r_peak), float(peak), np.nan
- 
+
 
     def process_frame(path, l_val, prev_r=None):
         raw = tifffile.imread(path).astype(float)
@@ -443,6 +443,452 @@ def _(all_results, np, plt, z_vals):
 
 
 @app.cell
+def _(all_results, find_crop_center, np, plt, z_vals):
+    def make_longitudinal_map(l_mode, half_width=150):
+
+        rows = []
+
+        for result in all_results[l_mode]:
+
+            img = result["image"].astype(float)
+
+            # Background subtraction
+            bg = np.median([
+                img[:20,:20],
+                img[:20,-20:],
+                img[-20:,:20],
+                img[-20:,-20:]
+            ])
+
+            img = np.clip(img - bg, 0, None)
+
+            # Beam center
+            cx, cy = find_crop_center(img)
+
+            x0 = int(round(cx))
+            y0 = int(round(cy))
+
+            # Crop around beam center
+            left  = max(0, x0 - half_width)
+            right = min(img.shape[1], x0 + half_width)
+
+            # Average several rows to reduce noise
+            row = np.mean(
+                img[max(0, y0-3):min(img.shape[0], y0+4),
+                    left:right],
+                axis=0
+            )
+
+            rows.append(row)
+
+        xz_map = np.array(rows)
+
+        # Normalize each z slice independently
+        xz_map = xz_map / (
+            np.max(xz_map, axis=1, keepdims=True) + 1e-12
+        )
+
+        return xz_map
+
+    xz_map = make_longitudinal_map(0)
+
+    def plot_longitudinal_map(l_mode):
+
+        xz_map = make_longitudinal_map(l_mode)
+
+        vmax = np.percentile(xz_map, 99)
+
+        plt.figure(figsize=(8,6))
+
+        plt.imshow(
+            xz_map,
+            aspect='auto',
+            origin='lower',
+            cmap='inferno',
+            vmax=vmax,
+            extent=[
+                -xz_map.shape[1]/2,
+                 xz_map.shape[1]/2,
+                 z_vals[0],
+                 z_vals[len(xz_map)-1]
+            ]
+        )
+
+        plt.xlabel("x (pixels)")
+        plt.ylabel("z (mm)")
+        plt.title(f"Longitudinal intensity map (ℓ={l_mode})")
+
+        plt.colorbar(label="Normalized intensity")
+
+        plt.tight_layout()
+        plt.show()
+
+    plot_longitudinal_map(0)
+    plot_longitudinal_map(1)
+    plot_longitudinal_map(2)
+
+    def plot_all_longitudinal_maps():
+
+        fig, axes = plt.subplots(
+            2, 3,
+            figsize=(14,8),
+            sharex=True,
+            sharey=True
+        )
+
+        axes = axes.flatten()
+
+        for l_mode in range(6):
+
+            xz_map = make_longitudinal_map(l_mode)
+
+            vmax = np.percentile(xz_map, 99)
+
+            axes[l_mode].imshow(
+                xz_map,
+                aspect='auto',
+                origin='lower',
+                cmap='inferno',
+                vmax=vmax,
+                extent=[
+                    -xz_map.shape[1]/2,
+                     xz_map.shape[1]/2,
+                     z_vals[0],
+                     z_vals[len(xz_map)-1]
+                ]
+            )
+
+            axes[l_mode].set_title(f"ℓ={l_mode}")
+
+        plt.tight_layout()
+        plt.show()
+
+    return
+
+
+@app.cell
+def _(all_results, find_crop_center, np):
+    # CELL 6.11
+
+    def make_radial_map(l_mode, max_radius=250):
+
+        radial_profiles = []
+
+        for result in all_results[l_mode]:
+
+            img = result["image"].astype(float)
+
+            # Background subtraction
+            bg = np.median([
+                img[:20,:20],
+                img[:20,-20:],
+                img[-20:,:20],
+                img[-20:,-20:]
+            ])
+
+            img = np.clip(img - bg, 0, None)
+
+            # Beam center
+            cx, cy = find_crop_center(img)
+
+            Y, X = np.indices(img.shape)
+
+            R = np.sqrt(
+                (X - cx)**2 +
+                (Y - cy)**2
+            )
+
+            R_int = np.floor(R).astype(int)
+
+            profile = np.zeros(max_radius)
+
+            for r in range(max_radius):
+
+                mask = (R_int == r)
+
+                if np.any(mask):
+                    profile[r] = np.mean(img[mask])
+
+            radial_profiles.append(profile)
+
+        radial_map = np.array(radial_profiles)
+
+        # Normalize each z slice
+        radial_map = radial_map / (
+            radial_map.max(axis=1, keepdims=True) + 1e-12
+        )
+
+        return radial_map
+
+    return (make_radial_map,)
+
+
+@app.cell
+def _(make_radial_map, np, plt, z_vals):
+    # CELL 6.12
+
+    def plot_radial_map(l_mode):
+
+        radial_map = make_radial_map(l_mode)
+
+        vmax = np.percentile(radial_map, 99)
+
+        plt.figure(figsize=(8,6))
+
+        plt.imshow(
+            radial_map,
+            aspect='auto',
+            origin='lower',
+            cmap='inferno',
+            vmax=vmax,
+            extent=[
+                0,
+                radial_map.shape[1],
+                z_vals[0],
+                z_vals[len(radial_map)-1]
+            ]
+        )
+
+        plt.xlabel("Radius (pixels)")
+        plt.ylabel("z (mm)")
+        plt.title(f"Radial intensity map (ℓ={l_mode})")
+
+        plt.colorbar(label="Normalized intensity")
+
+        plt.tight_layout()
+        plt.show()
+
+    return (plot_radial_map,)
+
+
+@app.cell
+def _(plot_radial_map):
+    plot_radial_map(0)
+    plot_radial_map(1)
+    plot_radial_map(2)
+    return
+
+
+@app.cell
+def _(make_radial_map, np, plt, z_vals):
+    # CELL 6.13
+
+    def plot_all_radial_maps():
+
+        fig, axes = plt.subplots(
+            2, 3,
+            figsize=(14,8),
+            sharex=True,
+            sharey=True
+        )
+
+        axes = axes.flatten()
+
+        for l_mode in range(6):
+
+            radial_map = make_radial_map(l_mode)
+
+            vmax = np.percentile(radial_map, 99)
+
+            axes[l_mode].imshow(
+                radial_map,
+                aspect='auto',
+                origin='lower',
+                cmap='inferno',
+                vmax=vmax,
+                extent=[
+                    0,
+                    radial_map.shape[1],
+                    z_vals[0],
+                    z_vals[len(radial_map)-1]
+                ]
+            )
+
+            axes[l_mode].set_title(f"ℓ={l_mode}")
+
+        plt.tight_layout()
+        plt.show()
+
+    plot_all_radial_maps()
+    return
+
+
+@app.cell
+def _(all_results, find_crop_center, np, plt, z_vals):
+    # CELL 6.15
+
+    def plot_all_beam_centers():
+
+        fig, axes = plt.subplots(
+            2, 3,
+            figsize=(14,8),
+            sharex=True
+        )
+
+        axes = axes.flatten()
+
+        for l_mode in range(6):
+
+            centers_x = []
+            centers_y = []
+
+            for result in all_results[l_mode]:
+
+                img = result["image"].astype(float)
+
+                bg = np.median([
+                    img[:20,:20],
+                    img[:20,-20:],
+                    img[-20:,:20],
+                    img[-20:,-20:]
+                ])
+
+                img = np.clip(img - bg, 0, None)
+
+                cx, cy = find_crop_center(img)
+
+                centers_x.append(cx)
+                centers_y.append(cy)
+
+            z_plot = z_vals[:len(centers_x)]
+
+            axes[l_mode].plot(z_plot, centers_x, label='cx')
+            axes[l_mode].plot(z_plot, centers_y, label='cy')
+
+            axes[l_mode].set_title(f'ℓ={l_mode}')
+            axes[l_mode].grid(alpha=0.3)
+
+        axes[0].legend()
+
+        plt.tight_layout()
+        plt.show()
+
+    plot_all_beam_centers()
+    return
+
+
+@app.cell
+def _(all_results, z_vals):
+    # CELL 6.17
+
+    def plot_all_peak_intensities_normalized(save_dir=None):
+
+        import os
+        import numpy as np
+        import matplotlib.pyplot as plt
+
+        plt.rcParams.update({
+            "font.size": 12,
+            "axes.labelsize": 12,
+            "axes.titlesize": 13,
+            "figure.titlesize": 16
+        })
+
+        fig, axes = plt.subplots(
+            2, 3,
+            figsize=(10, 6),
+            sharex=True,
+            sharey=True
+        )
+
+        axes = axes.flatten()
+
+        for l_mode in range(6):
+
+            peak_vals = []
+
+            for result in all_results[l_mode]:
+
+                img = result["image"].astype(float)
+
+                bg = np.median([
+                    img[:20,:20],
+                    img[:20,-20:],
+                    img[-20:,:20],
+                    img[-20:,-20:]
+                ])
+
+                img = np.clip(img - bg, 0, None)
+
+                peak_vals.append(np.max(img))
+
+            peak_vals = np.array(peak_vals)
+
+            peak_vals /= peak_vals.max()
+
+            z_plot = z_vals[:len(peak_vals)]
+
+            axes[l_mode].plot(
+                z_plot,
+                peak_vals,
+                'o-',
+                linewidth=2,
+                markersize=4
+            )
+
+            focus_z = z_plot[np.argmax(peak_vals)]
+
+            axes[l_mode].axvline(
+                focus_z,
+                linestyle='--',
+                alpha=0.6
+            )
+
+            axes[l_mode].set_title(f'ℓ = {l_mode}')
+            axes[l_mode].grid(alpha=0.3)
+
+            if l_mode >= 3:
+                axes[l_mode].set_xlabel('z (mm)')
+
+            if l_mode % 3 == 0:
+                axes[l_mode].set_ylabel('Normalized intensity')
+
+        fig.suptitle(
+            'Peak Intensity vs Propagation Distance',
+            y=1.02
+        )
+
+        plt.tight_layout()
+
+        # Save figure
+        if save_dir is not None:
+
+            os.makedirs(save_dir, exist_ok=True)
+
+            png_file = os.path.join(
+                save_dir,
+                "peak_intensity_vs_z.png"
+            )
+
+            pdf_file = os.path.join(
+                save_dir,
+                "peak_intensity_vs_z.pdf"
+            )
+
+            plt.savefig(
+                png_file,
+                dpi=300,
+                bbox_inches='tight'
+            )
+
+            plt.savefig(
+                pdf_file,
+                bbox_inches='tight'
+            )
+
+            print(f"Saved:")
+            print(png_file)
+            print(pdf_file)
+
+        plt.show()
+
+    plot_all_peak_intensities_normalized(
+        save_dir="/Users/carriecrane/GitHub/Optimal_Focusing/analysis/figures"
+    )
+    return
+
+
+@app.cell
 def _(all_results, np, plt, z_vals):
     ## CELL 7 ##
     def plot_peak_intensity():
@@ -474,108 +920,353 @@ def _(all_results, np, plt, z_vals):
 
 @app.cell
 def _(BEAM_SIZE, N_FOCUS, all_results, gaussian_filter, mo, np, plt, z_vals):
-    ## CELL 8 ##
-    def find_crop_center(img):
-        """Find beam center by taking weighted centroid of top 5% brightest pixels."""
-        blurred   = gaussian_filter(img, sigma=3)
-        threshold = np.percentile(blurred, 95)
-        bright    = blurred >= threshold
-        Y, X      = np.mgrid[:img.shape[0], :img.shape[1]]
-        cx = float(np.average(X[bright], weights=blurred[bright]))
-        cy = float(np.average(Y[bright], weights=blurred[bright]))
-        return cx, cy
+    def plot_focusing_images():
+        ## CELL 8 ##
+        from matplotlib.colors import LogNorm
+        from pathlib import Path
 
-    def fourier_clean(img, r_cut=100):
-        """Suppress high spatial frequency noise via low-pass Fourier filter."""
-        from numpy.fft import fft2, ifft2, fftshift, ifftshift
-        ny, nx = img.shape
-        Y, X   = np.ogrid[:ny, :nx]
-        R_f    = np.sqrt((X - nx//2)**2 + (Y - ny//2)**2)
-        lpf    = np.exp(-(R_f / r_cut)**4)
-        F_filt = fftshift(fft2(img)) * lpf
-        out    = np.real(ifft2(ifftshift(F_filt)))
-        return np.clip(out, 0, None)
+        # --------------------------------------------------
+        # Create output folders
+        # --------------------------------------------------
+        SAVE_ROOT = Path(
+            "/Users/carriecrane/GitHub/Optimal_Focusing/analysis/29_n15"
+        )
 
-    def plot_beam_grid(l_val, step=5, bg_scale=0.3):
-        res      = all_results[l_val]
-        indices  = list(range(0, len(res), step))
-        ncols    = len(indices)
-        fig, axes = plt.subplots(1, ncols, figsize=(ncols * 3, 3.5))
+        LINEAR_DIR = SAVE_ROOT / "beam_grids_linear"
+        LOG_DIR    = SAVE_ROOT / "beam_grids_log"
 
-        # Load background frame (first frame of this l value)
-        raw_bg  = res[0]["image"].astype(float)
-        bg_val  = np.median([raw_bg[:20,:20], raw_bg[:20,-20:],
-                             raw_bg[-20:,:20], raw_bg[-20:,-20:]])
-        img_bg  = np.clip(raw_bg - bg_val, 0, None)
-        img_bg_norm = img_bg / (img_bg.max() + 1e-6)
+        LINEAR_DIR.mkdir(parents=True, exist_ok=True)
+        LOG_DIR.mkdir(parents=True, exist_ok=True)
 
-        # Compute anchor center from first frame
-        blurred0   = gaussian_filter(img_bg, sigma=3)
-        thresh0    = np.percentile(blurred0, 95)
-        bright0    = blurred0 >= thresh0
-        Y0, X0     = np.mgrid[:blurred0.shape[0], :blurred0.shape[1]]
-        anchor_cx  = float(np.average(X0[bright0], weights=blurred0[bright0]))
-        anchor_cy  = float(np.average(Y0[bright0], weights=blurred0[bright0]))
 
-        half = 350
+        # --------------------------------------------------
+        # Beam center finder
+        # --------------------------------------------------
+        def find_crop_center(img):
 
-        # ---- CHANGE 1: compute global vmax across all frames before the loop ----
-        global_max = max(r["image"].astype(float).max() for r in res)
-        vmax = global_max * 0.95
-        # ------------------------------------------------------------------------
+            blurred = gaussian_filter(img, sigma=3)
 
-        for ax, idx in zip(axes, indices):
-            r   = res[idx]
-            img = r["image"].astype(float)
-            bg  = np.median([img[:20,:20], img[:20,-20:],
-                             img[-20:,:20], img[-20:,-20:]])
-            img = np.clip(img - bg, 0, None)
-            img = fourier_clean(img, r_cut=100)
-
-            blurred   = gaussian_filter(img, sigma=3)
             threshold = np.percentile(blurred, 95)
-            bright    = blurred >= threshold
-            Y, X      = np.mgrid[:img.shape[0], :img.shape[1]]
-            dist_from_anchor = np.sqrt((X - anchor_cx)**2 + (Y - anchor_cy)**2)
-            bright = bright & (dist_from_anchor < 150)
 
-            if bright.sum() > 10:
-                cx = float(np.average(X[bright], weights=blurred[bright]))
-                cy = float(np.average(Y[bright], weights=blurred[bright]))
-            else:
-                cx, cy = anchor_cx, anchor_cy
+            bright = blurred >= threshold
+
+            Y, X = np.mgrid[:img.shape[0], :img.shape[1]]
+
+            cx = float(
+                np.average(X[bright], weights=blurred[bright])
+            )
+
+            cy = float(
+                np.average(Y[bright], weights=blurred[bright])
+            )
+
+            return cx, cy
+
+
+        # --------------------------------------------------
+        # Fourier denoiser
+        # --------------------------------------------------
+        def fourier_clean(img, r_cut=100):
+
+            from numpy.fft import fft2, ifft2
+            from numpy.fft import fftshift, ifftshift
 
             ny, nx = img.shape
-            y1 = int(np.clip(cy - half, 0, ny - 2*half))
-            x1 = int(np.clip(cx - half, 0, nx - 2*half))
-            crop = img[y1:y1+2*half, x1:x1+2*half]
 
-            crop_cx = cx - x1
-            crop_cy = cy - y1
-            Y_c, X_c = np.ogrid[:crop.shape[0], :crop.shape[1]]
-            R_c = np.sqrt((X_c - crop_cx)**2 + (Y_c - crop_cy)**2)
-            mask_r   = 20
-            softness = 5
-            soft_mask = 1 / (1 + np.exp(-(R_c - mask_r) / softness))
-            crop = crop * soft_mask
+            Y, X = np.ogrid[:ny, :nx]
 
-            # ---- CHANGE 2: use global vmax instead of per-frame ----
-            ax.imshow(crop, cmap='inferno', origin='upper', vmax=vmax, vmin=0)
-            # --------------------------------------------------------
+            R_f = np.sqrt(
+                (X - nx//2)**2 +
+                (Y - ny//2)**2
+            )
 
-            ax.set_title(f'z={z_vals[idx]:.1f}mm', fontsize=8)
-            ax.axis('off')
+            lpf = np.exp(-(R_f/r_cut)**4)
 
-        plt.suptitle(f'ℓ={l_val}  beam={BEAM_SIZE} n={N_FOCUS} — focusing sequence', y=1.02)
-        plt.tight_layout()
-        plt.savefig(f"/Users/carriecrane/GitHub/Optimal_Focusing/analysis/29_n15/beam_grid_l{l_val}.png", dpi=130)
-        plt.close()
-        print(f"saved beam_grid_l{l_val}.png")
+            F = fftshift(fft2(img))
 
-    for l_val3 in range(6):
-        plot_beam_grid(l_val3, step=5, bg_scale=0.3)
+            F *= lpf
 
-    mo.callout(mo.md("Beam grids saved."), kind="success")
+            out = np.real(
+                ifft2(ifftshift(F))
+            )
+
+            return np.clip(out, 0, None)
+
+
+        # --------------------------------------------------
+        # Main plotting routine
+        # --------------------------------------------------
+        def plot_beam_grid(
+            l_val,
+            step=5,
+            use_log=False
+        ):
+
+            res = all_results[l_val]
+
+            indices = list(
+                range(0, len(res), step)
+            )
+
+            ncols = len(indices)
+
+            fig, axes = plt.subplots(
+                1,
+                ncols,
+                figsize=(ncols*3.2, 4.0)
+            )
+
+            # ----------------------------------------------
+            # Anchor center
+            # ----------------------------------------------
+            raw_bg = res[0]["image"].astype(float)
+
+            bg_val = np.median([
+                raw_bg[:20,:20],
+                raw_bg[:20,-20:],
+                raw_bg[-20:,:20],
+                raw_bg[-20:,-20:]
+            ])
+
+            img_bg = np.clip(
+                raw_bg - bg_val,
+                0,
+                None
+            )
+
+            blurred0 = gaussian_filter(
+                img_bg,
+                sigma=3
+            )
+
+            thresh0 = np.percentile(
+                blurred0,
+                95
+            )
+
+            bright0 = blurred0 >= thresh0
+
+            Y0, X0 = np.mgrid[
+                :blurred0.shape[0],
+                :blurred0.shape[1]
+            ]
+
+            anchor_cx = float(
+                np.average(
+                    X0[bright0],
+                    weights=blurred0[bright0]
+                )
+            )
+
+            anchor_cy = float(
+                np.average(
+                    Y0[bright0],
+                    weights=blurred0[bright0]
+                )
+            )
+
+            half = 350
+
+            global_max = max(
+                r["image"].astype(float).max()
+                for r in res
+            )
+
+            vmax = global_max * 0.95
+
+            # ----------------------------------------------
+            # Loop over z positions
+            # ----------------------------------------------
+            for ax, idx in zip(axes, indices):
+
+                img = res[idx]["image"].astype(float)
+
+                bg = np.median([
+                    img[:20,:20],
+                    img[:20,-20:],
+                    img[-20:,:20],
+                    img[-20:,-20:]
+                ])
+
+                img = np.clip(
+                    img - bg,
+                    0,
+                    None
+                )
+
+                img = fourier_clean(
+                    img,
+                    r_cut=100
+                )
+
+                blurred = gaussian_filter(
+                    img,
+                    sigma=3
+                )
+
+                threshold = np.percentile(
+                    blurred,
+                    95
+                )
+
+                bright = blurred >= threshold
+
+                Y, X = np.mgrid[
+                    :img.shape[0],
+                    :img.shape[1]
+                ]
+
+                dist = np.sqrt(
+                    (X-anchor_cx)**2 +
+                    (Y-anchor_cy)**2
+                )
+
+                bright &= (dist < 150)
+
+                if bright.sum() > 10:
+
+                    cx = float(
+                        np.average(
+                            X[bright],
+                            weights=blurred[bright]
+                        )
+                    )
+
+                    cy = float(
+                        np.average(
+                            Y[bright],
+                            weights=blurred[bright]
+                        )
+                    )
+
+                else:
+
+                    cx, cy = anchor_cx, anchor_cy
+
+                ny, nx = img.shape
+
+                y1 = int(
+                    np.clip(
+                        cy-half,
+                        0,
+                        ny-2*half
+                    )
+                )
+
+                x1 = int(
+                    np.clip(
+                        cx-half,
+                        0,
+                        nx-2*half
+                    )
+                )
+
+                crop = img[
+                    y1:y1+2*half,
+                    x1:x1+2*half
+                ]
+
+                # suppress center artifact
+                crop_cx = cx - x1
+                crop_cy = cy - y1
+
+                Yc, Xc = np.ogrid[
+                    :crop.shape[0],
+                    :crop.shape[1]
+                ]
+
+                Rc = np.sqrt(
+                    (Xc-crop_cx)**2 +
+                    (Yc-crop_cy)**2
+                )
+
+                soft_mask = 1 / (
+                    1 +
+                    np.exp(-(Rc-20)/5)
+                )
+
+                crop *= soft_mask
+
+                if use_log:
+
+                    ax.imshow(
+                        crop + 1,
+                        cmap="inferno",
+                        origin="upper",
+                        norm=LogNorm()
+                    )
+
+                else:
+
+                    ax.imshow(
+                        crop,
+                        cmap="inferno",
+                        origin="upper",
+                        vmin=0,
+                        vmax=vmax
+                    )
+
+                ax.set_title(
+                    f"z={z_vals[idx]:.1f} mm",
+                    fontsize=8
+                )
+
+                ax.axis("off")
+
+            scale_name = "LOG" if use_log else "LINEAR"
+
+            plt.suptitle(
+                f"ℓ={l_val}   beam={BEAM_SIZE}   n={N_FOCUS}   ({scale_name})",
+                fontsize=14,
+                y=0.98
+            )
+
+            plt.tight_layout(
+                rect=[0, 0, 1, 0.92]
+            )
+
+            if use_log:
+
+                outfile = LOG_DIR / f"beam_grid_l{l_val}.png"
+
+            else:
+
+                outfile = LINEAR_DIR / f"beam_grid_l{l_val}.png"
+
+            plt.savefig(
+                outfile,
+                dpi=200,
+                bbox_inches="tight"
+            )
+
+            plt.close()
+
+            print(f"saved {outfile}")
+
+
+        # --------------------------------------------------
+        # Generate everything
+        # --------------------------------------------------
+        for l_val in range(6):
+
+            plot_beam_grid(
+                l_val,
+                step=5,
+                use_log=False
+            )
+
+            plot_beam_grid(
+                l_val,
+                step=5,
+                use_log=True
+            )
+        return mo.callout(
+            mo.md("Linear and log beam grids saved."),
+            kind="success"
+        )
+
+
+    plot_focusing_images()
     return
 
 
