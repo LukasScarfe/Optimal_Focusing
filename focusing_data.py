@@ -169,6 +169,43 @@ def _(gaussian_filter, np, tifffile):
 
 
 @app.cell
+def _(gaussian_filter, np):
+    def find_crop_center(img):
+
+        blurred = gaussian_filter(img, sigma=3)
+
+        threshold = np.percentile(
+            blurred,
+            95
+        )
+
+        bright = blurred >= threshold
+
+        Y, X = np.mgrid[
+            :img.shape[0],
+            :img.shape[1]
+        ]
+
+        cx = float(
+            np.average(
+                X[bright],
+                weights=blurred[bright]
+            )
+        )
+
+        cy = float(
+            np.average(
+                Y[bright],
+                weights=blurred[bright]
+            )
+        )
+
+        return cx, cy
+
+    return (find_crop_center,)
+
+
+@app.cell
 def _(get_files, mo, np, process_frame, time):
     ## CELL 5 ##
     all_results = {}
@@ -314,7 +351,53 @@ def _(all_results, np, z_vals):
 
 
 @app.cell
-def _(all_results, np, plt, width_arr, z_vals):
+def _(all_results, np, plt, z_vals):
+    def plot_focus_position_vs_oam():
+
+        focus_z = []
+
+        for l_val in range(6):
+
+            width = np.array([
+                r["width"]
+                for r in all_results[l_val]
+            ])
+
+            valid = ~np.isnan(width)
+
+            width_valid = width[valid]
+            z_valid = z_vals[:len(width)][valid]
+
+            best_idx = np.argmin(width_valid)
+
+            focus_z.append(
+                z_valid[best_idx]
+            )
+
+        plt.figure(figsize=(6,4))
+
+        plt.plot(
+            range(6),
+            focus_z,
+            'o-',
+            linewidth=2
+        )
+
+        plt.xlabel("OAM mode ℓ")
+        plt.ylabel("Focus position (mm)")
+        plt.title("Focus position vs OAM mode")
+
+        plt.grid(alpha=0.3)
+
+        plt.tight_layout()
+        plt.show()
+
+    plot_focus_position_vs_oam()
+    return
+
+
+@app.cell
+def _(all_results, np, plt, z_vals):
     # CELL 6.65
 
     plt.figure(figsize=(8,6))
@@ -329,8 +412,8 @@ def _(all_results, np, plt, width_arr, z_vals):
 
         valid_mask2 = ~np.isnan(width_arr3)
 
-        z_plot2 = z_vals[:len(width_arr)][valid_mask2]
-        w_plot2 = width_arr[valid_mask2]
+        z_plot2 = z_vals[:len(width_arr3)][valid_mask2]
+        w_plot2 = width_arr3[valid_mask2]
 
         plt.plot(
             z_plot2,
@@ -361,46 +444,38 @@ def _(all_results, np, plt, width_arr, z_vals):
 def _(all_results, np, plt, z_vals):
     # CELL 6.7
 
-    plt.figure(figsize=(7,5))
+    def plot_beam_radius_all_modes():
 
-    for l_mode in range(6):
+        plt.figure(figsize=(8,6))
 
-        results_l2 = all_results[l_mode]
+        for l_mode in range(6):
 
-        width_arr = np.array([
-            r["width"] for r in results_l2
-        ])
+            width = np.array([
+                r["width"]
+                for r in all_results[l_mode]
+            ])
 
-        valid_mask = ~np.isnan(width_arr)
+            radius = width / 2
 
-        z_plot = z_vals[:len(width_arr)][valid_mask]
-        w_plot = width_arr[valid_mask]
+            plt.plot(
+                z_vals[:len(radius)],
+                radius,
+                linewidth=2,
+                label=f"ℓ={l_mode}"
+            )
 
-        w_plot = w_plot / w_plot[0]
+        plt.xlabel("z (mm)")
+        plt.ylabel("Beam radius (pixels)")
+        plt.title("Beam radius versus propagation distance")
 
-        plt.plot(
-            z_plot,
-            +w_plot,
-            lw=2,
-            label=f"ℓ={l_mode}"
-        )
+        plt.grid(alpha=0.3)
+        plt.legend()
 
-        plt.plot(
-            z_plot,
-            -w_plot,
-            lw=2
-        )
+        plt.tight_layout()
+        plt.show()
 
-    plt.axhline(0, color='k', lw=0.5)
-
-    plt.xlabel("Propagation Distance z (mm)")
-    plt.ylabel("Normalized Beam Radius")
-    plt.title("Beam Convergence")
-    plt.legend()
-
-    plt.tight_layout()
-    plt.show()
-    return (width_arr,)
+    plot_beam_radius_all_modes()
+    return
 
 
 @app.cell
@@ -461,6 +536,7 @@ def _(all_results, find_crop_center, np, plt, z_vals):
             ])
 
             img = np.clip(img - bg, 0, None)
+            img = img / (img.max() + 1e-9)
 
             # Beam center
             cx, cy = find_crop_center(img)
@@ -474,8 +550,7 @@ def _(all_results, find_crop_center, np, plt, z_vals):
 
             # Average several rows to reduce noise
             row = np.mean(
-                img[max(0, y0-3):min(img.shape[0], y0+4),
-                    left:right],
+                img[y0-1:y0+2, :],
                 axis=0
             )
 
@@ -505,7 +580,8 @@ def _(all_results, find_crop_center, np, plt, z_vals):
             aspect='auto',
             origin='lower',
             cmap='inferno',
-            vmax=vmax,
+            vmin=0,
+            vmax=np.percentile(xz_map,99),
             extent=[
                 -xz_map.shape[1]/2,
                  xz_map.shape[1]/2,
@@ -715,6 +791,589 @@ def _(make_radial_map, np, plt, z_vals):
 
 @app.cell
 def _(all_results, find_crop_center, np, plt, z_vals):
+
+
+    def make_xz_map(l_mode):
+
+        profiles = []
+
+        for result in all_results[l_mode]:
+
+            img = result["image"].astype(float)
+
+            bg = np.median([
+                img[:20,:20],
+                img[:20,-20:],
+                img[-20:,:20],
+                img[-20:,-20:]
+            ])
+
+            img = np.clip(img - bg, 0, None)
+
+            cx, cy = find_crop_center(img)
+
+            cx = int(round(cx))
+            cy = int(round(cy))
+
+            half_width = 250
+
+            x1 = max(0, cx-half_width)
+            x2 = min(img.shape[1], cx+half_width)
+
+            profile = np.mean(
+                img[cy-3:cy+4, x1:x2],
+                axis=0
+            )
+
+            profiles.append(profile)
+
+        return np.array(profiles)
+
+    def plot_xz_map(l_mode):
+
+        xz = make_xz_map(l_mode)
+
+        xz = xz / (xz.max() + 1e-12)
+
+        plt.figure(figsize=(7.2,5))
+
+        im = plt.imshow(
+            xz.T,
+            origin='lower',
+            aspect='auto',
+            cmap='viridis',
+            extent=[
+                z_vals[0],
+                z_vals[len(xz)-1],
+                -250,
+                250
+            ]
+        )
+
+        plt.xlabel("Propagation distance z (mm)")
+        plt.ylabel("x (pixels)")
+
+        plt.title(
+            f"Experimental propagation cross-section ($\\ell$={l_mode})"
+        )
+
+        plt.colorbar(
+            im,
+            label="normalized intensity"
+        )
+
+        plt.tight_layout()
+        plt.show()
+
+    def plot_all_xz_maps():
+
+        fig, axes = plt.subplots(
+            2, 3,
+            figsize=(12,8),
+            sharex=True,
+            sharey=True
+        )
+
+        axes = axes.flatten()
+
+        for l_mode in range(6):
+
+            xz = make_xz_map(l_mode)
+
+            xz = xz / (xz.max() + 1e-12)
+
+            axes[l_mode].imshow(
+                xz.T,
+                origin='lower',
+                aspect='auto',
+                cmap='viridis',
+                extent=[
+                    z_vals[0],
+                    z_vals[len(xz)-1],
+                    -32,
+                    32
+                ]
+            )
+
+            axes[l_mode].set_title(f"ℓ={l_mode}")
+
+        fig.suptitle("Experimental propagation cross-sections")
+
+        plt.tight_layout()
+        plt.show()
+
+    plot_all_xz_maps()
+    return
+
+
+@app.cell
+def _(
+    LogNorm,
+    all_results,
+    find_crop_center,
+    gaussian_filter,
+    np,
+    plt,
+    z_vals,
+):
+
+    def make_centered_xz_map(l_mode):
+
+        profiles = []
+
+        for result in all_results[l_mode]:
+
+            img = result["image"].astype(float)
+
+            bg = np.median([
+                img[:20,:20],
+                img[:20,-20:],
+                img[-20:,:20],
+                img[-20:,-20:]
+            ])
+
+            img = np.clip(img - bg, 0, None)
+
+            cx, cy = find_crop_center(img)
+
+            cy = int(round(cy))
+
+            half_width = 120
+
+            profile = np.mean(
+                img[max(0,cy-3):cy+4,:],
+                axis=0
+            )
+
+            cx_int = int(round(cx))
+
+            left = max(0, cx_int-half_width)
+            right = min(len(profile), cx_int+half_width)
+
+            profile = gaussian_filter(
+                profile,
+                sigma=2
+            )
+
+            profiles.append(profile)
+
+        return np.array(profiles)
+
+    def plot_centered_xz_map(l_mode):
+
+        xz = make_centered_xz_map(l_mode)
+
+        xz = xz / (xz.max() + 1e-9)
+
+        nx = xz.shape[1]
+
+        x_pixels = np.arange(nx) - nx/2
+
+        fig, ax = plt.subplots(figsize=(7,5))
+
+        im = ax.imshow(
+            xz.T,
+            origin='lower',
+            aspect='auto',
+            extent=[
+                z_vals[0],
+                z_vals[len(xz)-1],
+                x_pixels[0],
+                x_pixels[-1]
+            ],
+            cmap='viridis',
+            vmin = 0,
+            vmax = 1
+        )
+
+        ax.set_xlabel('Propagation distance z (mm)')
+        ax.set_ylabel('Transverse position x (pixels)')
+        ax.set_title(f'Experimental propagation map (ℓ={l_mode})')
+
+        cbar = plt.colorbar(im, ax=ax)
+        cbar.set_label('Normalized intensity')
+
+        plt.tight_layout()
+        plt.show()
+    
+    def plot_all_centered_xz_maps():
+
+        fig, axes = plt.subplots(
+            2, 3,
+            figsize=(14,8)
+        )
+
+        axes = axes.flatten()
+
+        for l_mode in range(6):
+
+            xz = make_centered_xz_map(l_mode)
+
+            xz = xz / (xz.max() + 1e-9)
+
+            nx = xz.shape[1]
+            x_pixels = np.arange(nx) - nx/2
+
+            im = axes[l_mode].imshow(
+                xz.T,
+                origin='lower',
+                aspect='auto',
+                extent=[
+                    z_vals[0],
+                    z_vals[len(xz)-1],
+                    x_pixels[0],
+                    x_pixels[-1]
+                ],
+                cmap='viridis',
+                norm=LogNorm(vmin=1e-3, vmax=1)
+            )
+
+            axes[l_mode].set_title(f'ℓ={l_mode}')
+            axes[l_mode].set_xlabel('z (mm)')
+            axes[l_mode].set_ylabel('x (pixels)')
+        
+        plt.tight_layout()
+        plt.show()
+
+    plot_all_centered_xz_maps()
+    return (make_centered_xz_map,)
+
+
+@app.cell
+def _(
+    LogNorm,
+    all_results,
+    find_crop_center,
+    gaussian_filter,
+    np,
+    plt,
+    z_vals,
+):
+    PIXEL_PITCH_MM = 0.0048  # <-- set this to your camera's pixel pitch (mm/pixel),
+                              #     divided by any magnification factor in your imaging setup
+
+    def make_centered_xz_map_mm(l_mode, half_width=120):
+        """Like make_centered_xz_map, but actually crops to half_width and
+        returns an x-axis in mm instead of raw pixels."""
+        profiles = []
+        for result in all_results[l_mode]:
+            img = result["image"].astype(float)
+            bg = np.median([
+                img[:20,:20], img[:20,-20:], img[-20:,:20], img[-20:,-20:]
+            ])
+            img = np.clip(img - bg, 0, None)
+            cx, cy = find_crop_center(img)
+            cy = int(round(cy))
+            cx_int = int(round(cx))
+
+            row = np.mean(img[max(0,cy-3):cy+4, :], axis=0)
+            row = gaussian_filter(row, sigma=2)
+
+            # actually crop around cx_int (this was computed but unused before)
+            left = max(0, cx_int - half_width)
+            right = min(len(row), cx_int + half_width)
+            cropped = row[left:right]
+
+            # pad so all profiles have the same width even near image edges
+            pad_left = half_width - (cx_int - left)
+            pad_right = (2*half_width) - len(cropped) - pad_left
+            cropped = np.pad(cropped, (pad_left, pad_right), mode='constant')
+            profiles.append(cropped)
+
+        xz = np.array(profiles)
+        nx = xz.shape[1]
+        x_mm = (np.arange(nx) - nx/2) * PIXEL_PITCH_MM
+        return xz, x_mm
+
+
+    def plot_experiment_vs_simulation(l_mode, sim_z, sim_x_mm, sim_xz,
+                                       z_focus_exp=None, z_focus_sim=None,
+                                       vmin=5e-3, vmax=1.0):
+        """Side-by-side comparison on matched mm axes and matched log color scale."""
+        xz_exp, x_mm_exp = make_centered_xz_map_mm(l_mode)
+        xz_exp = xz_exp / (xz_exp.max() + 1e-9)
+
+        sim_xz_norm = sim_xz / (sim_xz.max() + 1e-9)
+
+        fig, axes = plt.subplots(1, 2, figsize=(12, 5), constrained_layout=True)
+
+        im0 = axes[0].imshow(
+            xz_exp.T, origin='lower', aspect='auto', cmap='viridis',
+            norm=LogNorm(vmin=vmin, vmax=vmax),
+            extent=[z_vals[0], z_vals[len(xz_exp)-1], x_mm_exp[0], x_mm_exp[-1]]
+        )
+        axes[0].set_title(f'Experiment (ℓ={l_mode})')
+        axes[0].set_xlabel('z (mm)')
+        axes[0].set_ylabel('x (mm)')
+        if z_focus_exp is not None:
+            axes[0].axvline(z_focus_exp, color='w', ls='--', lw=1)
+
+        im1 = axes[1].imshow(
+            sim_xz_norm.T, origin='lower', aspect='auto', cmap='viridis',
+            norm=LogNorm(vmin=vmin, vmax=vmax),
+            extent=[sim_z[0], sim_z[-1], sim_x_mm[0], sim_x_mm[-1]]
+        )
+        axes[1].set_title(f'Simulation (ℓ={l_mode})')
+        axes[1].set_xlabel('z (mm)')
+        axes[1].set_ylabel('x (mm)')
+        if z_focus_sim is not None:
+            axes[1].axvline(z_focus_sim, color='w', ls='--', lw=1)
+
+        # match x-range to whichever is narrower so the comparison window is identical
+        z_lo = max(z_vals[0], sim_z[0])
+        z_hi = min(z_vals[len(xz_exp)-1], sim_z[-1])
+        axes[0].set_xlim(z_lo, z_hi)
+        axes[1].set_xlim(z_lo, z_hi)
+
+        cbar = fig.colorbar(im1, ax=axes, shrink=0.85, pad=0.02)
+        cbar.set_label('Normalized intensity (log)')
+        plt.show()
+
+    return (plot_experiment_vs_simulation,)
+
+
+@app.cell
+def _(LogNorm, make_centered_xz_map, np, plt, z_vals):
+
+    def plot_all_xz_maps_clean():
+
+        # ----------------------------------------
+        # Build all maps first
+        # ----------------------------------------
+
+        maps = []
+
+        for l_mode in range(6):
+
+            xz = make_centered_xz_map(l_mode)
+
+            xz = xz / (xz.max() + 1e-9)
+
+            maps.append(xz)
+
+        # ----------------------------------------
+        # Shared color scaling
+        # ----------------------------------------
+
+        all_pixels = np.concatenate(
+            [m.ravel() for m in maps]
+        )
+
+        vmax = 1.0
+
+        # suppress extreme background
+        vmin = 5e-3
+
+        # ----------------------------------------
+        # Figure layout
+        # ----------------------------------------
+
+        fig, axes = plt.subplots(
+            2,
+            3,
+            figsize=(14,8),
+            constrained_layout=True
+        )
+
+        axes = axes.flatten()
+
+        # ----------------------------------------
+        # Plot
+        # ----------------------------------------
+
+        for l_mode, ax in enumerate(axes):
+
+            xz = maps[l_mode]
+
+            nx = xz.shape[1]
+
+            x_pixels = (
+                np.arange(nx)
+                - nx/2
+            )
+
+            im = ax.imshow(
+                xz.T,
+                origin="lower",
+                aspect="auto",
+                cmap="viridis",
+                norm=LogNorm(
+                    vmin=vmin,
+                    vmax=vmax
+                ),
+                extent=[
+                    z_vals[0],
+                    z_vals[len(xz)-1],
+                    -25,25
+                ]
+            )
+
+            ax.set_title(
+                rf"$\ell={l_mode}$",
+                fontsize=12
+            )
+
+            ax.set_xlabel(
+                "z (mm)"
+            )
+
+            ax.set_ylabel(
+                "x (pixels)"
+            )
+
+        # ----------------------------------------
+        # One shared colorbar
+        # ----------------------------------------
+
+        cbar = fig.colorbar(
+            im,
+            ax=axes,
+            shrink=0.85,
+            pad=0.02
+        )
+
+        cbar.set_label(
+            "Normalized intensity"
+        )
+
+        fig.suptitle(
+            "Experimental propagation maps",
+            fontsize=16
+        )
+
+        plt.show()
+    
+    plot_all_xz_maps_clean()
+    return
+
+
+@app.cell
+def _(plot_experiment_vs_simulation, sim_x, sim_xz, sim_z):
+    plot_experiment_vs_simulation(
+        l_mode=0,
+        sim_z=sim_z,        # your simulation's z array, in mm
+        sim_x_mm=sim_x,      # your simulation's x array, in mm
+        sim_xz=sim_xz,       # your simulation's 2D intensity map
+        z_focus_exp=17.0,    # wherever you find the experimental focus (mm) — adjust
+        z_focus_sim=90.0     # wherever your simulation's dashed line currently is — adjust
+    )
+    return
+
+
+@app.cell
+def _(all_results, find_crop_center, np, plt, z_vals):
+    from matplotlib.colors import LogNorm
+
+    def make_rz_map(l_mode):
+
+        profiles = []
+
+        max_len = 0
+
+        for result in all_results[l_mode]:
+
+            img = result["image"].astype(float)
+
+            bg = np.median([
+                img[:20,:20],
+                img[:20,-20:],
+                img[-20:,:20],
+                img[-20:,-20:]
+            ])
+
+            img = np.clip(img - bg, 0, None)
+
+            cx, cy = find_crop_center(img)
+
+            Y, X = np.indices(img.shape)
+
+            R = np.sqrt(
+                (X-cx)**2 +
+                (Y-cy)**2
+            )
+
+            R = R.astype(int)
+
+            max_r = 350
+
+            radial_profile = np.zeros(max_r)
+
+            for r in range(max_r):
+
+                mask = (R >= r) & (R < r+1)
+
+                if np.any(mask):
+                    radial_profile[r] = np.mean(
+                        img[mask]
+                    )
+        
+            profiles.append(radial_profile)
+
+            max_len = max(
+                max_len,
+                len(radial_profile)
+            )
+
+        padded_profiles = []
+
+        for profile in profiles:
+
+            padded = np.pad(
+                profile,
+                (0, max_len - len(profile)),
+                mode="constant"
+            )
+
+            padded_profiles.append(padded)
+
+        return np.array(padded_profiles)
+
+    def plot_rz_map(l_mode):
+
+        rz = make_rz_map(l_mode)
+
+        rz = rz / (rz.max() + 1e-9)
+
+        plt.figure(figsize=(7,6))
+
+        vmin = 0
+        vmax = np.percentile(rz, 99.5)
+
+        plt.imshow(
+            rz + 1e-4,
+            aspect='auto',
+            origin='lower',
+            cmap='viridis',
+            norm=LogNorm(vmin=1e-3, vmax =1),
+            extent=[
+                0,
+                rz.shape[1],
+                z_vals[0],
+                z_vals[len(rz)-1]
+            ]
+        )
+
+        plt.xlabel("Radius (pixels)")
+        plt.ylabel("z (mm)")
+        plt.title(f"Experimental r-z propagation map (ℓ={l_mode})")
+
+        plt.colorbar(label="Normalized intensity")
+
+        plt.tight_layout()
+        plt.show()
+
+    def plot_all_rz_maps():
+
+        for l_mode in range(6):
+
+            plot_rz_map(l_mode)
+
+    plot_all_rz_maps()
+    return (LogNorm,)
+
+
+@app.cell
+def _(all_results, find_crop_center, np, plt, z_vals):
     # CELL 6.15
 
     def plot_all_beam_centers():
@@ -764,6 +1423,12 @@ def _(all_results, find_crop_center, np, plt, z_vals):
         plt.show()
 
     plot_all_beam_centers()
+    return
+
+
+@app.cell
+def _(plot_all_peak_intensities_normalized):
+    plot_all_peak_intensities_normalized()
     return
 
 
@@ -885,7 +1550,7 @@ def _(all_results, z_vals):
     plot_all_peak_intensities_normalized(
         save_dir="/Users/carriecrane/GitHub/Optimal_Focusing/analysis/figures"
     )
-    return
+    return (plot_all_peak_intensities_normalized,)
 
 
 @app.cell
