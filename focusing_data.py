@@ -995,7 +995,7 @@ def _(
 
         plt.tight_layout()
         plt.show()
-    
+
     def plot_all_centered_xz_maps():
 
         fig, axes = plt.subplots(
@@ -1031,7 +1031,7 @@ def _(
             axes[l_mode].set_title(f'ℓ={l_mode}')
             axes[l_mode].set_xlabel('z (mm)')
             axes[l_mode].set_ylabel('x (pixels)')
-        
+
         plt.tight_layout()
         plt.show()
 
@@ -1242,7 +1242,7 @@ def _(LogNorm, make_centered_xz_map, np, plt, z_vals):
         )
 
         plt.show()
-    
+
     plot_all_xz_maps_clean()
     return
 
@@ -1306,7 +1306,7 @@ def _(all_results, find_crop_center, np, plt, z_vals):
                     radial_profile[r] = np.mean(
                         img[mask]
                     )
-        
+
             profiles.append(radial_profile)
 
             max_len = max(
@@ -1856,7 +1856,7 @@ def _(BEAM_SIZE, N_FOCUS, all_results, gaussian_filter, mo, np, plt, z_vals):
 
                     ax.imshow(
                         crop + 1,
-                        cmap="inferno",
+                        cmap="viridis",
                         origin="upper",
                         norm=LogNorm()
                     )
@@ -1865,7 +1865,7 @@ def _(BEAM_SIZE, N_FOCUS, all_results, gaussian_filter, mo, np, plt, z_vals):
 
                     ax.imshow(
                         crop,
-                        cmap="inferno",
+                        cmap="viridis",
                         origin="upper",
                         vmin=0,
                         vmax=vmax
