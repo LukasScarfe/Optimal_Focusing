@@ -1575,7 +1575,7 @@ def _(all_results, np, plt, z_vals):
 
         plt.suptitle('Innermost ring peak intensity vs z position', fontsize=13)
         plt.tight_layout()
-        plt.savefig("/Users/carriecrane/GitHub/Optimal_Focusing/peak_intensity_vs_z.png", dpi=130)
+        plt.savefig("/Users/carriecrane/GitHub/Optimal_Focusing/analysis/peak_intensity_vs_z.png", dpi=130)
         plt.close()
         print("saved peak_intensity_vs_z.png")
 
