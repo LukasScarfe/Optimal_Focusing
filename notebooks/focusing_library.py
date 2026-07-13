@@ -1872,4 +1872,141 @@ def load_dataset():
 
 
 
+def make_prl_style_figure(l_mode):
 
+    from matplotlib.colors import LogNorm
+    import matplotlib.pyplot as plt
+    import numpy as np
+
+    # ---------------------------------------
+    # Load data
+    # ---------------------------------------
+
+    results = all_results[l_mode]
+
+    # Beam widths already computed
+    widths = np.array([r["width"] for r in results])
+
+    focus_idx = np.nanargmin(widths)
+
+    image_indices = [
+        0,
+        focus_idx,
+        len(results)-1
+    ]
+
+    # ---------------------------------------
+    # Build propagation map
+    # ---------------------------------------
+
+    xz, x_mm = make_centered_xz_map_mm(l_mode)
+
+    xz = xz / (xz.max() + 1e-9)
+
+    # ---------------------------------------
+    # Figure layout
+    # ---------------------------------------
+
+    fig = plt.figure(figsize=(11,7))
+
+    gs = fig.add_gridspec(
+        2,
+        3,
+        height_ratios=[1,1.3],
+        hspace=0.25
+    )
+
+    # ---------------------------------------
+    # Top row
+    # ---------------------------------------
+
+    for col, idx in enumerate(image_indices):
+
+        ax = fig.add_subplot(gs[0,col])
+
+        img = results[idx]["image"].astype(float)
+
+        bg = np.median([
+            img[:20,:20],
+            img[:20,-20:],
+            img[-20:,:20],
+            img[-20:,-20:]
+        ])
+
+        img = np.clip(img-bg,0,None)
+
+        cx, cy = find_crop_center(img)
+
+        cx = int(round(cx))
+        cy = int(round(cy))
+
+        half = 180
+
+        crop = img[
+            cy-half:cy+half,
+            cx-half:cx+half
+        ]
+
+        crop = crop/(crop.max()+1e-9)
+
+        ax.imshow(
+            crop,
+            cmap="viridis",
+            origin="upper",
+            norm=LogNorm(vmin=5e-3,vmax=1)
+        )
+
+        ax.set_title(
+            f"z = {z_vals[idx]:.1f} mm",
+            fontsize=11
+        )
+
+        ax.set_xticks([])
+        ax.set_yticks([])
+
+    # ---------------------------------------
+    # Bottom row
+    # ---------------------------------------
+
+    ax = fig.add_subplot(gs[1,:])
+
+    im = ax.imshow(
+
+        xz.T,
+
+        origin="lower",
+
+        aspect="auto",
+
+        cmap="viridis",
+
+        norm=LogNorm(vmin=5e-3,vmax=1),
+
+        extent=[
+            z_vals[0],
+            z_vals[len(xz)-1],
+            x_mm[0],
+            x_mm[-1]
+        ]
+    )
+
+    ax.set_xlabel("Propagation distance (mm)")
+    ax.set_ylabel("Transverse position (mm)")
+
+    ax.set_title(
+        "Experimental propagation"
+    )
+
+    cbar = fig.colorbar(
+        im,
+        ax=ax
+    )
+
+    cbar.set_label("Normalized intensity")
+
+    fig.suptitle(
+        f"ℓ = {l_mode}",
+        fontsize=15
+    )
+
+    plt.show()

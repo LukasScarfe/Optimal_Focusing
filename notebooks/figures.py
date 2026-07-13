@@ -48,6 +48,12 @@ def _(fl):
 
 @app.cell
 def _(fl):
+    fl.make_prl_style_figure(3)
+    return
+
+
+@app.cell
+def _(fl):
     sim_data = fl.build_all_simulations(n0 = 15, Ntau = 80, Nrho_out = 300, Nx = 900, force_recompute = False)
     fl.plot_all_xz_maps_with_simulation(sim_data)
     return (sim_data,)
