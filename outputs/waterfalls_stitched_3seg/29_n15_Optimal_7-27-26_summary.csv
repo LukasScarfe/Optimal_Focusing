@@ -1,0 +1,7 @@
+run,ell,blend,n_frames,z_min_mm,z_max_mm,brightest_z_mm,start_0-25_mm,start_20-45_mm,start_40-65_mm
+29_n15_Optimal_7-27-26,0,hardcut,141,0.0,70.0,43.5,0.0,24.0,44.5
+29_n15_Optimal_7-27-26,1,hardcut,141,0.0,70.0,47.0,0.0,24.0,44.5
+29_n15_Optimal_7-27-26,2,hardcut,141,0.0,70.0,50.0,0.0,24.0,43.5
+29_n15_Optimal_7-27-26,3,hardcut,141,0.0,70.0,50.0,0.0,24.0,44.5
+29_n15_Optimal_7-27-26,4,hardcut,141,0.0,70.0,50.5,0.0,24.0,44.5
+29_n15_Optimal_7-27-26,5,hardcut,141,0.0,70.0,50.0,0.0,24.5,45.0

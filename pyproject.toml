@@ -4,7 +4,15 @@ version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.9"
-dependencies = []
+dependencies = [
+    "ipykernel>=6.31.0",
+    "jupyter>=1.1.1",
+    "matplotlib>=3.9.4",
+    "nbconvert>=7.17.1",
+    "numpy>=2.0.2",
+    "pandas>=2.3.3",
+    "pillow>=11.3.0",
+]
 
 [build-system]
 requires = ["uv_build>=0.11.1,<0.12.0"]

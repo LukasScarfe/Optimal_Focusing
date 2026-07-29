@@ -1,0 +1,13 @@
+# Python environments
+.venv/
+__pycache__/
+*.py[cod]
+
+# Raw data (large; kept local, not tracked)
+data/
+
+# Claude Code agent memory (local scratch, not project content)
+memory/
+
+# OS cruft
+.DS_Store
