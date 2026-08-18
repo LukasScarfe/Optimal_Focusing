@@ -1,0 +1,10 @@
+condition,ell,segment,nominal_start_mm,start_mm
+FBZ,1,0mm-25mm,0.0,0.0
+FBZ,1,20mm-45mm,20.0,24.0
+FBZ,1,40mm-65mm,40.0,43.5
+Optimal,1,0mm-25mm,0.0,0.0
+Optimal,1,20mm-45mm,20.0,24
+Optimal,1,40mm-65mm,40.0,43.5
+PFBZ,1,0mm-25mm,0.0,0.0
+PFBZ,1,20mm-45mm,20.0,24
+PFBZ,1,40mm-65mm,40.0,43.5

@@ -1,0 +1,4 @@
+run,condition,ell,blend,n_frames,z_min_mm,z_max_mm,brightest_z_mm,focus_z_rms_mm,min_width_rms_px,focus_z_lg_mm,lg_waist_px,lg_rms_model_px,peak_onaxis_cts,raw_frame_max_cts,saturated_frames,start_0mm-25mm_mm,start_20mm-45mm_mm,start_40mm-65mm_mm
+29_n15_8-17-26,FBZ,1,hardcut,138,0.0,68.5,51.0,52.0,13.85,50.5,7.5,6.49,140.0,615.0,0,0.0,24.0,43.5
+29_n15_8-17-26,Optimal,1,hardcut,138,0.0,68.5,51.5,55.0,15.02,49.0,7.29,6.31,60.0,376.0,0,0.0,24.0,43.5
+29_n15_8-17-26,PFBZ,1,hardcut,138,0.0,68.5,50.5,50.5,18.47,50.5,7.63,6.6,136.0,702.0,0,0.0,24.0,43.5
