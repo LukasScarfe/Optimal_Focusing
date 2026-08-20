@@ -114,6 +114,51 @@ def fit_centroid_lines(sections, shared_slope=True):
     return lines, (slope_y, slope_x)
 
 
+def _fit_parabola_weighted(z, v, w):
+    """Weighted least squares of a single section's parabola ``v = a*z**2 + b*z + c``."""
+    z = np.asarray(z, float)
+    v = np.asarray(v, float)
+    sw = np.sqrt(np.clip(np.asarray(w, float), 0.0, None))
+    if not np.any(sw > 0):
+        sw = np.ones_like(sw)
+    X = np.stack([z ** 2, z, np.ones_like(z)], axis=1)
+    coef, *_ = np.linalg.lstsq(X * sw[:, None], v * sw, rcond=None)
+    return float(coef[0]), float(coef[1]), float(coef[2])
+
+
+def fit_centroid_parabolas(sections):
+    """Fit an independent centroid PARABOLA for every section of one run.
+
+    Same per-section spirit as :func:`fit_centroid_lines` with
+    ``shared_slope=False``, but each section gets its own quadratic
+    ``centroid(z) = a*z**2 + b*z + c`` instead of a straight line.  The extra
+    curvature term lets the fitted centroid BEND to follow a gently curved beam
+    walk-off (or any smooth discrepancy the straight line leaves in the
+    residual), while the brightness weights still keep the dim tails from
+    dominating.  Offsets are absorbed by ``c`` per section, exactly as the line
+    model's offset absorbs the per-segment repositioning jump.
+
+    ``sections`` maps a section id to a mapping with keys ``z``, ``cy``, ``cx``,
+    ``w`` (1-D arrays of equal length).  Returns ``(lines, coeffs)`` where
+    ``lines[key] = (cy_fit, cx_fit)`` are the fitted centroid arrays and
+    ``coeffs = (coef_y_by_key, coef_x_by_key)`` map each key to its
+    ``(a, b, c)`` tuple.
+    """
+    z = {k: np.asarray(s["z"], float) for k, s in sections.items()}
+    cy = {k: np.asarray(s["cy"], float) for k, s in sections.items()}
+    cx = {k: np.asarray(s["cx"], float) for k, s in sections.items()}
+    w = {k: np.asarray(s["w"], float) for k, s in sections.items()}
+
+    lines, coef_y, coef_x = {}, {}, {}
+    for k in sections:
+        ay, by, cy_ = _fit_parabola_weighted(z[k], cy[k], w[k])
+        ax, bx, cx_ = _fit_parabola_weighted(z[k], cx[k], w[k])
+        lines[k] = (ay * z[k] ** 2 + by * z[k] + cy_,
+                    ax * z[k] ** 2 + bx * z[k] + cx_)
+        coef_y[k], coef_x[k] = (ay, by, cy_), (ax, bx, cx_)
+    return lines, (coef_y, coef_x)
+
+
 def continuous_knots(sections, order):
     """Handoff points (one per adjacent pair) for a continuous piecewise fit.
 
@@ -284,6 +329,27 @@ def fit_sections_for_plot_continuous(sections, labels=None, order=None, knots=No
     at each handoff (no jump).  ``z`` must be the GLOBAL scan coordinate.
     """
     lines, _ = fit_centroid_lines_continuous(sections, order=order, knots=knots)
+    labels = list(sections) if labels is None else labels
+    out = []
+    for lab in labels:
+        s = sections[lab]
+        cy_fit, cx_fit = lines[lab]
+        out.append(dict(
+            z=np.asarray(s["z"], float),
+            cy_raw=np.asarray(s["cy"], float), cx_raw=np.asarray(s["cx"], float),
+            cy_fit=cy_fit, cx_fit=cx_fit,
+            w=(None if s.get("w") is None else np.asarray(s["w"], float)),
+            label=lab))
+    return out
+
+
+def fit_sections_for_plot_parabola(sections, labels=None):
+    """Like :func:`fit_sections_for_plot`, but overlay the per-section PARABOLA
+    fit (:func:`fit_centroid_parabolas`) instead of the straight line -- so the
+    diagnostic shows the curved centroid model against the frame-by-frame
+    centroid.
+    """
+    lines, _ = fit_centroid_parabolas(sections)
     labels = list(sections) if labels is None else labels
     out = []
     for lab in labels:
